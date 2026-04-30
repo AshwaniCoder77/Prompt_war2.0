@@ -1,27 +1,18 @@
-const express = require('express');
-const path = require('path');
-const app = express();
-const PORT = process.env.PORT || 8080;
+const http = require('http');
 
-// EMERGENCY TEST MODE
-console.log("!!! EMERGENCY TEST MODE STARTING !!!");
+console.log("!!! NUCLEAR TEST MODE STARTING !!!");
 
-app.get('/api/health', (req, res) => {
-    console.log("Health check hit!");
-    res.json({ status: 'ok', time: new Date() });
+const server = http.createServer((req, res) => {
+  console.log("Request received:", req.url);
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Cloud Run is working!\n');
 });
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-});
-
-const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`!!! SERVER IS LIVE ON PORT ${PORT} !!!`);
+const PORT = 8080;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`!!! NUCLEAR SERVER IS LIVE ON PORT ${PORT} !!!`);
 });
 
 server.on('error', (err) => {
-    console.error("SERVER ERROR:", err);
+  console.error("NUCLEAR SERVER ERROR:", err);
 });
