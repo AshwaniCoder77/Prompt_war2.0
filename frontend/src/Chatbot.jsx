@@ -199,10 +199,13 @@ export default function Chatbot() {
           if (audioRef.current === audio) audioRef.current = null;
         };
       } else {
-        console.error("Failed to fetch TTS");
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Failed to fetch TTS:", response.status, errorData);
+        alert(`Audio Error: ${response.status}. Check backend logs.`);
       }
     } catch (error) {
       console.error("TTS Error:", error);
+      alert("Network Error: Could not connect to audio service.");
     }
   };
 
