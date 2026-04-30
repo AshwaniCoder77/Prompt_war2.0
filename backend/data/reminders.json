@@ -1,0 +1,23 @@
+{
+  "tokens": [
+    "eS26CGzQwN_BsPPqhxuRgy:APA91bHDQEeuQnB6spDfYVPtsgQKju7vLGKm9Nv7fUg5ICEAWMutEBx9g1AetoWH6htlcahxyi5zmR6l8H3uia-UR9WdneALhfE0JlY36Oilbw6paFsFvHE"
+  ],
+  "reminders": [
+    {
+      "id": 1777529862762,
+      "title": "dd",
+      "time": "2026-04-30T11:49",
+      "priority": "medium",
+      "enabled": true,
+      "sent": true
+    },
+    {
+      "id": 1777530121806,
+      "title": "la",
+      "time": "2026-04-30T11:53",
+      "priority": "medium",
+      "enabled": true,
+      "sent": true
+    }
+  ]
+}

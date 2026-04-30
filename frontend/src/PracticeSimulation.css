@@ -1,0 +1,486 @@
+.practice-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.practice-disclaimer {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 5px solid #ffeeba;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.practice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--card-bg);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px var(--shadow);
+}
+
+.practice-header h2 {
+  margin: 0;
+  color: var(--primary);
+  font-size: 1.5rem;
+}
+
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.mode-toggle label {
+  cursor: pointer;
+}
+
+.mode-toggle input {
+  cursor: pointer;
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: var(--primary);
+}
+
+.practice-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.progress-bar-container {
+  flex: 1;
+  height: 10px;
+  background-color: #e2e8f0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.practice-card {
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 6px 12px var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 350px;
+}
+
+.practice-card h3 {
+  font-size: 1.75rem;
+  color: var(--text-primary);
+  margin: 0;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.practice-explanation {
+  background-color: #f8fafc;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--secondary);
+  font-size: 1.1rem;
+  color: #334155;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.voice-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.voice-btn:hover {
+  background-color: #e2e8f0;
+}
+
+.practice-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-size: 1.2rem;
+}
+
+/* Step specific styles */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  background-color: #f1f5f9;
+  padding: 1rem;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.checkbox-label:hover {
+  background-color: #e2e8f0;
+}
+
+.checkbox-label input {
+  width: 1.5rem;
+  height: 1.5rem;
+  accent-color: var(--primary);
+}
+
+.id-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.id-card {
+  border: 2px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+  color: var(--text-primary);
+  background-color: white;
+}
+
+.id-card:hover {
+  border-color: var(--primary);
+  background-color: #f8fafc;
+}
+
+.id-card.selected {
+  border-color: var(--primary);
+  background-color: #eff6ff;
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.evm-machine {
+  border: 4px solid #475569;
+  border-radius: 12px;
+  padding: 1.5rem;
+  background-color: #f1f5f9;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.evm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 2px solid #cbd5e1;
+  background-color: white;
+  margin-bottom: 0.5rem;
+  border-radius: 6px;
+}
+
+.evm-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.evm-candidate {
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.evm-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  border: 3px solid #1e3a8a;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.1s;
+}
+
+.evm-button:active {
+  transform: scale(0.9);
+  background-color: #2563eb;
+}
+
+.evm-button.pressed {
+  background-color: #ef4444; /* Red light mock */
+  border-color: #991b1b;
+}
+
+.confirmation-box {
+  text-align: center;
+  background-color: #f0fdf4;
+  border: 2px solid #22c55e;
+  padding: 2rem;
+  border-radius: 12px;
+  margin: 1rem 0;
+}
+
+.confirmation-box h4 {
+  color: #166534;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.practice-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: #334155;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #cbd5e1;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Dark theme support */
+body.dark-mode .practice-disclaimer {
+  background-color: #42381e;
+  color: #fde047;
+  border-left-color: #ca8a04;
+}
+
+body.dark-mode .practice-explanation {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border-left-color: var(--primary);
+}
+
+body.dark-mode .checkbox-label {
+  background-color: #1e293b;
+}
+
+body.dark-mode .id-card {
+  background-color: #1e293b;
+  border-color: #475569;
+}
+
+body.dark-mode .id-card.selected {
+  background-color: #0f172a;
+  border-color: var(--primary);
+}
+
+body.dark-mode .evm-machine {
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+body.dark-mode .evm-row {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+body.dark-mode .confirmation-box {
+  background-color: #052e16;
+  border-color: #166534;
+}
+
+body.dark-mode .confirmation-box h4 {
+  color: #4ade80;
+}
+
+body.dark-mode .btn-secondary {
+  background-color: #334155;
+  color: #e2e8f0;
+}
+
+body.dark-mode .btn-secondary:hover:not(:disabled) {
+  background-color: #475569;
+}
+
+/* Eligibility Step Styles */
+.eligibility-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.eligibility-item {
+  background: var(--bg-main);
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.eligibility-item p {
+  margin-bottom: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.yes-no-btns {
+  display: flex;
+  gap: 1rem;
+}
+
+.choice-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  background: white;
+  color: var(--text-secondary);
+}
+
+.choice-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.choice-btn.selected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.choice-btn.selected.no {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+.ineligible-error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: var(--radius-md);
+  color: #b91c1c;
+  font-weight: 600;
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Responsive Practice */
+@media (max-width: 768px) {
+
+  .practice-container {
+    padding: 0.5rem;
+    gap: 1rem;
+  }
+
+  .practice-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .practice-card {
+    padding: 1.25rem;
+    min-height: auto;
+  }
+
+  .practice-card h3 {
+    font-size: 1.25rem;
+  }
+
+  .practice-explanation {
+    font-size: 0.95rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .practice-content {
+    font-size: 1rem;
+  }
+
+  .id-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .evm-machine {
+    padding: 1rem;
+    width: 100%;
+  }
+
+  .evm-candidate {
+    font-size: 1rem;
+  }
+
+  .evm-button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .practice-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .practice-actions button {
+    width: 100%;
+    order: 1;
+  }
+
+  .practice-actions .btn-secondary {
+    order: 2;
+  }
+}
+
