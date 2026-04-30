@@ -12,9 +12,10 @@ const getGCloudConfig = () => {
   if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
     return { credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) };
   }
-  // Fallback to local file for dev
-  return { keyFilename: './speechServiceAccount.json' };
+  // Fallback to local file for dev (one level up from backend)
+  return { keyFilename: '../speechServiceAccount.json' };
 };
+
 
 // Initialize Google Cloud Speech Client
 const client = new speech.SpeechClient(getGCloudConfig());

@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Start listening immediately
+// INSTANT START: Listen immediately
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server is live on port ${PORT}`);
 });
@@ -27,9 +27,6 @@ app.use(express.json());
 // Health Check
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
 // API Routes
 try {
   app.use('/api/progress', require('./routes/progress'));
@@ -41,7 +38,7 @@ try {
   console.error('Error loading routes:', e.message);
 }
 
-// Services
+// Optional Services
 try {
   require('./config/firebase');
   require('./services/notificationScheduler');
@@ -49,7 +46,10 @@ try {
   console.error('Error loading services:', e.message);
 }
 
-// Catchall for SPA
-app.get('*', (req, res) => {
+// Serve static files
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Catchall for SPA (Express 5 fix: use '/*' instead of '*')
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
