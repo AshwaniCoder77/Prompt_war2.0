@@ -73,7 +73,7 @@ export default function Resources() {
             <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
               <iframe 
                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                src="https://www.youtube-nocookie.com/embed/51tHcgBfiJ0" 
+                src="https://www.youtube.com/embed/51tHcgBfiJ0?rel=0&modestbranding=1" 
                 title={t('resources.video1')}
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -86,7 +86,7 @@ export default function Resources() {
             <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
               <iframe 
                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                src="https://www.youtube-nocookie.com/embed/hP4wUVhVW-I" 
+                src="https://www.youtube.com/embed/hP4wUVhVW-I?rel=0&modestbranding=1" 
                 title={t('resources.video2')}
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
