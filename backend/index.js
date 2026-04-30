@@ -1,56 +1,27 @@
-require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// INSTANT START: Listen immediately to avoid Cloud Run timeouts
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 INSTANT START: Server is now listening on port ${PORT}`);
+// EMERGENCY TEST MODE
+console.log("!!! EMERGENCY TEST MODE STARTING !!!");
+
+app.get('/api/health', (req, res) => {
+    console.log("Health check hit!");
+    res.json({ status: 'ok', time: new Date() });
 });
-
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const path = require('path');
-
-// Global error handlers
-process.on('uncaughtException', (err) => {
-  console.error('CRITICAL: Uncaught Exception:', err.message);
-});
-
-// Security & Middleware
-app.use(helmet({
-  contentSecurityPolicy: false, // Disable for easier debugging in dev
-}));
-app.use(cors());
-app.use(express.json());
-
-// Health Check
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 // Serve static files
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-// API Routes (Loaded after server starts)
-try {
-  app.use('/api/progress', require('./routes/progress'));
-  app.use('/api/chat', require('./routes/chat'));
-  app.use('/api/speech', require('./routes/speech'));
-  app.use('/api/translate', require('./routes/translate'));
-  app.use('/api/reminders', require('./routes/reminders'));
-} catch (e) {
-  console.error('Error loading routes:', e.message);
-}
-
-// Optional Services
-try {
-  require('./config/firebase');
-  require('./services/notificationScheduler');
-} catch (e) {
-  console.error('Error loading services:', e.message);
-}
-
-// Catchall
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
+
+const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`!!! SERVER IS LIVE ON PORT ${PORT} !!!`);
+});
+
+server.on('error', (err) => {
+    console.error("SERVER ERROR:", err);
 });
