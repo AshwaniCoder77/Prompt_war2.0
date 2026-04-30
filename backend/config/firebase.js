@@ -1,20 +1,19 @@
 const admin = require('firebase-admin');
+
+// Total Cleanup: Only use environment variables for Cloud Run
 try {
-  let credential;
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    credential = admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT));
+    const credential = admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT));
     admin.initializeApp({ credential });
-    console.log('Firebase initialized via environment variable');
+    console.log('✅ Firebase initialized via Environment Variable');
   } else {
-    console.warn('FIREBASE_SERVICE_ACCOUNT not found. Firebase features will be disabled.');
+    console.warn('⚠️ No FIREBASE_SERVICE_ACCOUNT variable found.');
   }
 } catch (error) {
-  console.error('Firebase initialization error:', error.message);
+  console.error('❌ Firebase Init Error:', error.message);
 }
 
-
-
-const db = admin.firestore();
-const auth = admin.auth();
+const db = admin.apps.length > 0 ? admin.firestore() : null;
+const auth = admin.apps.length > 0 ? admin.auth() : null;
 
 module.exports = { admin, db, auth };
