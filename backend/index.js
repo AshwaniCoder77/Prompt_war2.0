@@ -44,7 +44,7 @@ try {
 // Serve static files
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-// Catchall for SPA (Express 4 uses '*')
-app.get('*', (req, res) => {
+// THE ULTIMATE CATCHALL (Safe for all Express versions)
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });

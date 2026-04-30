@@ -2,9 +2,9 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 
-// Robust path finding for local dev
-const rootDir = path.join(__dirname, '..', '..');
-const SERVICE_ACCOUNT_PATH = path.join(rootDir, 'serviceAccountKey.json');
+// Look for keys inside the backend folder (same folder as index.js)
+const backendDir = path.join(__dirname, '..');
+const SERVICE_ACCOUNT_PATH = path.join(backendDir, 'serviceAccountKey.json');
 
 try {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {

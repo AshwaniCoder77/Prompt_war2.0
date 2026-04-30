@@ -3,8 +3,10 @@ const router = express.Router();
 const speech = require('@google-cloud/speech');
 const textToSpeech = require('@google-cloud/text-to-speech');
 const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
-// Configure multer for memory storage (we don't want to store voice data on disk)
+// Configure multer for memory storage
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Helper to get Google Cloud credentials
@@ -12,28 +14,40 @@ const getGCloudConfig = () => {
   if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
     return { credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) };
   }
-  // Fallback to local file for dev (one level up from backend)
-  return { keyFilename: '../speechServiceAccount.json' };
+  
+  // Local fallback: Look in the backend folder
+  const localKey = path.join(__dirname, '..', 'speechServiceAccount.json');
+  if (fs.existsSync(localKey)) {
+    return { keyFilename: localKey };
+  }
+  
+  return null;
 };
 
+// Safely initialize clients
+let client;
+let ttsClient;
 
-// Initialize Google Cloud Speech Client
-const client = new speech.SpeechClient(getGCloudConfig());
-
-const ttsClient = new textToSpeech.TextToSpeechClient(getGCloudConfig());
-
+try {
+  const config = getGCloudConfig();
+  if (config) {
+    client = new speech.SpeechClient(config);
+    ttsClient = new textToSpeech.TextToSpeechClient(config);
+    console.log('🎙️ Speech & TTS Clients initialized.');
+  } else {
+    console.warn('⚠️ Speech credentials not found. Speech features disabled.');
+  }
+} catch (e) {
+  console.error('❌ Speech Init Error:', e.message);
+}
 
 router.post('/transcribe', upload.single('audio'), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No audio file provided' });
-    }
+    if (!client) return res.status(503).json({ error: 'Speech service not available' });
+    if (!req.file) return res.status(400).json({ error: 'No audio file provided' });
 
     const audioBytes = req.file.buffer.toString('base64');
-
-    const audio = {
-      content: audioBytes,
-    };
+    const audio = { content: audioBytes };
     
     const { language } = req.body;
     const speechLangMap = {
@@ -44,26 +58,17 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
     };
     const targetLangCode = speechLangMap[language] || 'en-IN';
 
-    // We expect webm or wav from browser media recorder
     const config = {
       encoding: 'WEBM_OPUS',
       languageCode: targetLangCode,
-      // Omitted sampleRateHertz to let Google Cloud auto-detect from the WEBM container
     };
 
-    const request = {
-      audio: audio,
-      config: config,
-    };
-
-    // Detects speech in the audio file
-    const [response] = await client.recognize(request);
+    const [response] = await client.recognize({ audio, config });
     const transcription = response.results
       .map(result => result.alternatives[0].transcript)
       .join('\n');
 
     res.json({ text: transcription });
-
   } catch (error) {
     console.error('Speech-to-Text Error:', error);
     res.status(500).json({ error: 'Failed to transcribe audio' });
@@ -72,11 +77,9 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
 
 router.post('/tts', async (req, res) => {
   try {
+    if (!ttsClient) return res.status(503).json({ error: 'TTS service not available' });
     const { text, language } = req.body;
-    
-    if (!text) {
-      return res.status(400).json({ error: 'No text provided' });
-    }
+    if (!text) return res.status(400).json({ error: 'No text provided' });
 
     const speechLangMap = {
       'en': 'en-IN', 'hi': 'hi-IN', 'bn': 'bn-IN', 'te': 'te-IN', 
@@ -94,14 +97,11 @@ router.post('/tts', async (req, res) => {
     };
 
     const [response] = await ttsClient.synthesizeSpeech(request);
-    
     res.set({
       'Content-Type': 'audio/mpeg',
       'Content-Length': response.audioContent.length
     });
-    
     res.send(response.audioContent);
-
   } catch (error) {
     console.error('Text-to-Speech Error:', error);
     res.status(500).json({ error: 'Failed to synthesize speech' });
