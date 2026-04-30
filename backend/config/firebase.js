@@ -3,14 +3,15 @@ try {
   let credential;
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     credential = admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT));
+    admin.initializeApp({ credential });
+    console.log('Firebase initialized via environment variable');
   } else {
-    const serviceAccount = require('../serviceAccountKey.json');
-    credential = admin.credential.cert(serviceAccount);
+    console.warn('FIREBASE_SERVICE_ACCOUNT not found. Firebase features will be disabled.');
   }
-  admin.initializeApp({ credential });
 } catch (error) {
   console.error('Firebase initialization error:', error.message);
 }
+
 
 
 const db = admin.firestore();
