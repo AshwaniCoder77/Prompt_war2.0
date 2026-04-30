@@ -24,6 +24,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 // API Routes
 try {
+  app.use('/api/config', require('./routes/config'));
   app.use('/api/progress', require('./routes/progress'));
   app.use('/api/chat', require('./routes/chat'));
   app.use('/api/speech', require('./routes/speech'));
