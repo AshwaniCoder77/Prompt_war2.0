@@ -46,8 +46,12 @@ app.get('/api', (req, res) => {
 });
 
 
-// Import Firebase config to initialize it
-require('./config/firebase');
+// Optional service loading
+try {
+  require('./config/firebase');
+} catch (e) {
+  console.error('Failed to load Firebase:', e.message);
+}
 
 // API Routes
 const progressRoutes = require('./routes/progress');
@@ -65,8 +69,14 @@ app.use('/api/translate', translateRoutes);
 const reminderRoutes = require('./routes/reminders');
 app.use('/api/reminders', reminderRoutes);
 
-// Start Notification Scheduler
-require('./services/notificationScheduler');
+// Optional scheduler
+try {
+  require('./services/notificationScheduler');
+} catch (e) {
+  console.error('Failed to load Notification Scheduler:', e.message);
+}
+
+
 
 // Protected test route
 const { verifyToken } = require('./middleware/auth');
