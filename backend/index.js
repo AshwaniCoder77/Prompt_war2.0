@@ -1,18 +1,55 @@
-const http = require('http');
+require('dotenv').config();
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 8080;
 
-console.log("!!! NUCLEAR TEST MODE STARTING !!!");
-
-const server = http.createServer((req, res) => {
-  console.log("Request received:", req.url);
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Cloud Run is working!\n');
+// Start listening immediately
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server is live on port ${PORT}`);
 });
 
-const PORT = 8080;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`!!! NUCLEAR SERVER IS LIVE ON PORT ${PORT} !!!`);
+const cors = require('cors');
+const helmet = require('helmet');
+const path = require('path');
+
+// Global error handlers
+process.on('uncaughtException', (err) => {
+  console.error('CRITICAL: Uncaught Exception:', err.message);
 });
 
-server.on('error', (err) => {
-  console.error("NUCLEAR SERVER ERROR:", err);
+// Security & Middleware
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
+app.use(cors());
+app.use(express.json());
+
+// Health Check
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
+// Serve static files
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// API Routes
+try {
+  app.use('/api/progress', require('./routes/progress'));
+  app.use('/api/chat', require('./routes/chat'));
+  app.use('/api/speech', require('./routes/speech'));
+  app.use('/api/translate', require('./routes/translate'));
+  app.use('/api/reminders', require('./routes/reminders'));
+} catch (e) {
+  console.error('Error loading routes:', e.message);
+}
+
+// Services
+try {
+  require('./config/firebase');
+  require('./services/notificationScheduler');
+} catch (e) {
+  console.error('Error loading services:', e.message);
+}
+
+// Catchall for SPA
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
