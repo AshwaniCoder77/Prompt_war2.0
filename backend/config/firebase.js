@@ -2,7 +2,9 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 
-const SERVICE_ACCOUNT_PATH = path.join(__dirname, '../../serviceAccountKey.json');
+// Robust path finding for local dev
+const rootDir = path.join(__dirname, '..', '..');
+const SERVICE_ACCOUNT_PATH = path.join(rootDir, 'serviceAccountKey.json');
 
 try {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -12,13 +14,13 @@ try {
     console.log('✅ Firebase initialized via Environment Variable');
   } else if (fs.existsSync(SERVICE_ACCOUNT_PATH)) {
     // Local Mode
-    const serviceAccount = require(SERVICE_ACCOUNT_PATH);
+    const serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, 'utf8'));
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
-    console.log('🏠 Firebase initialized via Local File');
+    console.log('🏠 Firebase initialized via Local File:', SERVICE_ACCOUNT_PATH);
   } else {
-    console.warn('⚠️ No Firebase credentials found (ENV or File).');
+    console.warn('⚠️ No Firebase credentials found. Checked:', SERVICE_ACCOUNT_PATH);
   }
 } catch (error) {
   console.error('❌ Firebase Init Error:', error.message);

@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// INSTANT START: Listen immediately
+// Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server is live on port ${PORT}`);
 });
@@ -11,11 +11,6 @@ app.listen(PORT, '0.0.0.0', () => {
 const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
-
-// Global error handlers
-process.on('uncaughtException', (err) => {
-  console.error('CRITICAL: Uncaught Exception:', err.message);
-});
 
 // Security & Middleware
 app.use(helmet({
@@ -49,7 +44,7 @@ try {
 // Serve static files
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-// Catchall for SPA (Express 5 fix: use '/*' instead of '*')
-app.get('/*', (req, res) => {
+// Catchall for SPA (Express 4 uses '*')
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
