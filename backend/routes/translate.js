@@ -4,7 +4,15 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const fs = require('fs').promises;
 const path = require('path');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+let genAI;
+try {
+  if (process.env.GEMINI_API_KEY) {
+    genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  }
+} catch (e) {
+  console.error("Failed to initialize GoogleGenerativeAI:", e.message);
+}
+
 
 const TRANSLATIONS_DIR = path.join(__dirname, '..', 'translations');
 

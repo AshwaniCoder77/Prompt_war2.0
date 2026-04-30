@@ -3,7 +3,15 @@ const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Initialize Gemini API
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+let genAI;
+try {
+  if (process.env.GEMINI_API_KEY) {
+    genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  }
+} catch (e) {
+  console.error("Failed to initialize GoogleGenerativeAI:", e.message);
+}
+
 
 // Mock Knowledge Base for Indian Elections (Emulating RAG Context)
 const electionKnowledgeBase = `
