@@ -9,7 +9,8 @@ const SERVICE_ACCOUNT_PATH = path.join(backendDir, 'serviceAccountKey.json');
 try {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     // Cloud Mode
-    const credential = admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT));
+    const cleanJson = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
+    const credential = admin.credential.cert(JSON.parse(cleanJson));
     admin.initializeApp({ credential });
     console.log('✅ Firebase initialized via Environment Variable');
   } else if (fs.existsSync(SERVICE_ACCOUNT_PATH)) {

@@ -11,8 +11,13 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Helper to get Google Cloud credentials
 const getGCloudConfig = () => {
-  if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-    return { credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) };
+  try {
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+      const cleanJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON.trim();
+      return { credentials: JSON.parse(cleanJson) };
+    }
+  } catch (err) {
+    console.error('❌ Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON:', err.message);
   }
   
   // Local fallback: Look in the backend folder
