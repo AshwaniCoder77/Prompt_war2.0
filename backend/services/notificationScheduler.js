@@ -1,26 +1,19 @@
 const cron = require('node-cron');
-const admin = require('firebase-admin');
+const { admin } = require('../config/firebase');
+
 const fs = require('fs');
 const path = require('path');
 
 const DB_PATH = path.join(__dirname, '../data/reminders.json');
-const SERVICE_ACCOUNT_PATH = path.join(__dirname, '../serviceAccountKey.json');
 
-if (admin.apps.length === 0 && fs.existsSync(SERVICE_ACCOUNT_PATH)) {
-  try {
-    const serviceAccount = require(SERVICE_ACCOUNT_PATH);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
-    console.log('✅ Firebase Admin initialized successfully.');
-  } catch (err) {
-    console.error('❌ Firebase Init Error:', err.message);
-  }
-} else if (admin.apps.length > 0) {
-  console.log('🔄 Firebase Admin already initialized, reusing existing app.');
-} else {
-  console.warn('⚠️ Firebase Service Account not found at:', SERVICE_ACCOUNT_PATH);
+// Ensure data directory exists
+if (!fs.existsSync(path.dirname(DB_PATH))) {
+  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 }
+if (!fs.existsSync(DB_PATH)) {
+  fs.writeFileSync(DB_PATH, JSON.stringify({ reminders: [], tokens: [] }));
+}
+
 
 const checkAndSendNotifications = async () => {
   if (!fs.existsSync(DB_PATH)) return;
