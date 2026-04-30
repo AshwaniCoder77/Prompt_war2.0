@@ -15,6 +15,7 @@ const path = require('path');
 // Security & Middleware
 app.use(helmet({
   contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
 }));
 app.use(cors());
 app.use(express.json());
