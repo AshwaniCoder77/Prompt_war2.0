@@ -7,14 +7,20 @@ const multer = require('multer');
 // Configure multer for memory storage (we don't want to store voice data on disk)
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Initialize Google Cloud Speech Client
-const client = new speech.SpeechClient({
-  keyFilename: './speechServiceAccount.json'
-});
+// Helper to get Google Cloud credentials
+const getGCloudConfig = () => {
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+    return { credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) };
+  }
+  // Fallback to local file for dev
+  return { keyFilename: './speechServiceAccount.json' };
+};
 
-const ttsClient = new textToSpeech.TextToSpeechClient({
-  keyFilename: './speechServiceAccount.json'
-});
+// Initialize Google Cloud Speech Client
+const client = new speech.SpeechClient(getGCloudConfig());
+
+const ttsClient = new textToSpeech.TextToSpeechClient(getGCloudConfig());
+
 
 router.post('/transcribe', upload.single('audio'), async (req, res) => {
   try {
