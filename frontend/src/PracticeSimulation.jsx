@@ -33,11 +33,17 @@ export default function PracticeSimulation() {
   }, []);
 
   const speak = async (text) => {
+    if (!text) {
+      console.log('🔈 No text provided to speak');
+      return;
+    }
+    
     if (audioRef.current) {
       audioRef.current.pause();
     }
     
     const cleanText = text.replace(/[*_#\[\]`]/g, '');
+    console.log('🗣️ Practice Simulation speaking:', cleanText.substring(0, 50));
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/speech/tts`, {
@@ -48,16 +54,24 @@ export default function PracticeSimulation() {
 
 
       if (response.ok) {
-        const audioBlob = await response.blob();
+        const data = await response.json();
+        console.log('🎵 Practice Audio received (base64 length):', data.audioContent?.length);
+        
+        const audioBlob = await (await fetch(`data:${data.contentType};base64,${data.audioContent}`)).blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
-        audio.play();
+        audio.play().catch(e => console.error('🚫 Practice play failed:', e));
+        
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          if (audioRef.current === audio) audioRef.current = null;
+        };
       } else {
-        console.error("Failed to fetch TTS");
+        console.error("❌ Practice TTS failed:", response.status);
       }
     } catch (error) {
-      console.error("TTS Error:", error);
+      console.error("❌ Practice TTS Error:", error);
     }
   };
 

@@ -109,11 +109,12 @@ router.post('/tts', async (req, res) => {
     };
 
     const [response] = await ttsClient.synthesizeSpeech(request);
-    res.set({
-      'Content-Type': 'audio/mpeg',
-      'Content-Length': response.audioContent.length
+    const audioBase64 = response.audioContent.toString('base64');
+    
+    res.json({ 
+      audioContent: audioBase64,
+      contentType: 'audio/mpeg'
     });
-    res.send(response.audioContent);
   } catch (error) {
     console.error('Text-to-Speech Error:', error);
     res.status(500).json({ 

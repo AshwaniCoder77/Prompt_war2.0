@@ -197,8 +197,10 @@ export default function Chatbot() {
 
 
       if (response.ok) {
-        const audioBlob = await response.blob();
-        console.log('🎵 Audio blob received, size:', audioBlob.size);
+        const data = await response.json();
+        console.log('🎵 Audio data received (base64 length):', data.audioContent?.length);
+        
+        const audioBlob = await (await fetch(`data:${data.contentType};base64,${data.audioContent}`)).blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
