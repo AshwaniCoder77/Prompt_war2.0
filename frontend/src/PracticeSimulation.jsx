@@ -57,14 +57,17 @@ export default function PracticeSimulation() {
         const data = await response.json();
         console.log('🎵 Practice Audio received (base64 length):', data.audioContent?.length);
         
-        const audioBlob = await (await fetch(`data:${data.contentType};base64,${data.audioContent}`)).blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
+        const audioUrl = `data:${data.contentType};base64,${data.audioContent}`;
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
-        audio.play().catch(e => console.error('🚫 Practice play failed:', e));
+        
+        console.log('▶️ Calling Practice audio.play()...');
+        audio.play()
+          .then(() => console.log('✅ Practice playback started'))
+          .catch(e => console.error('🚫 Practice play failed:', e));
         
         audio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
+          console.log('⏹️ Practice audio ended');
           if (audioRef.current === audio) audioRef.current = null;
         };
       } else {

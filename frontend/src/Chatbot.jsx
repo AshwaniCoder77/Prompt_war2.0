@@ -198,22 +198,21 @@ export default function Chatbot() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('🎵 Audio data received (base64 length):', data.audioContent?.length);
-        
-        const audioBlob = await (await fetch(`data:${data.contentType};base64,${data.audioContent}`)).blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
+        const audioUrl = `data:${data.contentType};base64,${data.audioContent}`;
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
         
-        audio.play().catch(e => {
-          console.error('🚫 Audio play failed:', e);
-          if (e.name === 'NotAllowedError') {
-             alert("Playback blocked. Please click anywhere on the page to enable audio.");
-          }
-        });
-
+        audio.play()
+          .then(() => console.log('✅ Playback started'))
+          .catch(e => {
+            console.error('🚫 Audio play failed:', e);
+            if (e.name === 'NotAllowedError') {
+               alert("Playback blocked. Please click anywhere on the page to enable audio.");
+            }
+          });
+        
         audio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
+          console.log('⏹️ Audio playback ended');
           if (audioRef.current === audio) audioRef.current = null;
         };
       } else {
