@@ -111,7 +111,6 @@ function MainApp() {
   const [highContrast, setHighContrast] = useState(() => localStorage.getItem('vote_hc') === 'true' || document.body.classList.contains('high-contrast'));
   const [largeText, setLargeText] = useState(() => localStorage.getItem('vote_lt') === 'true' || document.body.classList.contains('large-text'));
 
-  const [notification, setNotification] = useState({ title: '', body: '' });
 
   useEffect(() => {
     localStorage.setItem('vote_dark', isDark);
@@ -162,10 +161,6 @@ function MainApp() {
     // Foreground listener
     const unsubscribe = onMessageListener(payload => {
       console.log('Foreground message:', payload);
-      setNotification({
-        title: payload.notification.title,
-        body: payload.notification.body
-      });
       if (Notification.permission === 'granted') {
         new Notification(payload.notification.title, { body: payload.notification.body, icon: '/logo.png' });
       } else {
@@ -228,6 +223,7 @@ function MainApp() {
               <select 
                 value={lang} 
                 onChange={(e) => setLang(e.target.value)}
+                aria-label="Select Language"
                 style={{ appearance: 'none', background: 'transparent', border: 'none', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500, color: 'var(--text-primary)', paddingRight: '1rem' }}
               >
                 {indianLanguages.map(l => (
@@ -235,7 +231,7 @@ function MainApp() {
                 ))}
               </select>
             </div>
-            <div className="notification-icon" onClick={() => setIsRemindersOpen(true)} style={{ cursor: 'pointer' }}>
+            <div className="notification-icon" onClick={() => setIsRemindersOpen(true)} style={{ cursor: 'pointer' }} role="button" aria-label="Open reminders">
               🔔
               {activeCount > 0 && <span className="badge">{activeCount}</span>}
             </div>

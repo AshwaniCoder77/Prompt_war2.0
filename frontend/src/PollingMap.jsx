@@ -25,15 +25,14 @@ function MapContent({ apiKey }) {
     googleMapsApiKey: apiKey
   });
 
-  const [map, setMap] = useState(null);
   const [selectedStation, setSelectedStation] = useState(null);
 
-  const onLoad = useCallback(function callback(map) {
-    setMap(map);
+  const onLoad = useCallback(function callback() {
+    // Map loaded
   }, []);
 
-  const onUnmount = useCallback(function callback(map) {
-    setMap(null);
+  const onUnmount = useCallback(function callback() {
+    // Map unmounted
   }, []);
 
   if (!isLoaded) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading Maps...</div>;

@@ -75,8 +75,10 @@ const checkAndSendNotifications = async () => {
   fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
 };
 
-// Run every minute
-cron.schedule('* * * * *', () => {
-  console.log('Checking reminders...');
-  checkAndSendNotifications();
-});
+// Run every minute (except in test environment)
+if (process.env.NODE_ENV !== 'test') {
+  cron.schedule('* * * * *', () => {
+    console.log('Checking reminders...');
+    checkAndSendNotifications();
+  });
+}

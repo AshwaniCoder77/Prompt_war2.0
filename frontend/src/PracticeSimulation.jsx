@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from './LanguageContext';
 import { FaVolumeUp, FaCheckCircle, FaRedo, FaArrowRight, FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
 import { API_BASE_URL } from './config';
@@ -37,7 +37,7 @@ export default function PracticeSimulation() {
       audioRef.current.pause();
     }
     
-    const cleanText = text.replace(/[*_#\[\]`]/g, '');
+    const cleanText = text.replace(/[*_#[\]`]/g, '');
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/speech/tts`, {
@@ -88,7 +88,7 @@ export default function PracticeSimulation() {
 
   const renderStepContent = () => {
     switch (step) {
-      case 1:
+      case 1: {
         const isIneligible = is18 === 'no' || isCitizen === 'no';
         return (
           <div className="practice-content">
@@ -138,6 +138,7 @@ export default function PracticeSimulation() {
             </div>
           </div>
         );
+      }
 
       case 2:
         return (

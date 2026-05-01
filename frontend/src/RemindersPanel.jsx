@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FaBell, FaPlus, FaTrash, FaTimes, FaClock } from 'react-icons/fa';
 import { API_BASE_URL } from './config';
 import './RemindersPanel.css';
@@ -26,7 +26,7 @@ export default function RemindersPanel({ isOpen, onClose, reminders, setReminder
 
     // Sync to backend
     try {
-        const response = await fetch(`${API_BASE_URL}/api/reminders`, {
+        await fetch(`${API_BASE_URL}/api/reminders`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...newReminder, token: localStorage.getItem('fcm_token') })

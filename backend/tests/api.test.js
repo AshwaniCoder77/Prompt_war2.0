@@ -46,4 +46,40 @@ describe('API Integration Tests', () => {
         done();
       });
   });
+
+  it('POST /api/translate should return 400 if targetLanguage is missing', (done) => {
+    request(app)
+      .post('/api/translate')
+      .send({ texts: { test: 'hello' } })
+      .expect(400)
+      .end((err, res) => {
+        if (err) return done(err);
+        expect(res.body).to.have.property('error');
+        done();
+      });
+  });
+
+  it('POST /api/translate should return original text if targetLanguage is "en"', (done) => {
+    request(app)
+      .post('/api/translate')
+      .send({ texts: { home: 'Home' }, targetLanguage: 'en' })
+      .expect(200)
+      .end((err, res) => {
+        if (err) return done(err);
+        expect(res.body.translated.home).to.equal('Home');
+        done();
+      });
+  });
+
+  it('GET /non-existent-route should return 200 (index.html)', (done) => {
+    request(app)
+      .get('/non-existent-route')
+      .expect(200)
+      .end((err, res) => {
+        if (err) return done(err);
+        // Expecting HTML content (index.html)
+        expect(res.header['content-type']).to.include('text/html');
+        done();
+      });
+  });
 });

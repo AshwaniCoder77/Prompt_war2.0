@@ -24,6 +24,21 @@ export default function Chatbot() {
   const abortControllerRef = useRef(null);
 
 
+  const stopCurrentActions = () => {
+    // Stop any ongoing fetch
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    // Stop any ongoing speech
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
+    setIsLoading(false);
+  };
+
   useEffect(() => {
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
@@ -47,7 +62,7 @@ export default function Chatbot() {
 
       recognitionRef.current = recognition;
     }
-  }, []);
+  }, [SpeechRecognition]);
 
   useEffect(() => {
     if (recognitionRef.current) {
@@ -62,21 +77,6 @@ export default function Chatbot() {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const stopCurrentActions = () => {
-    // Stop any ongoing fetch
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-    // Stop any ongoing speech
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-    }
-    setIsLoading(false);
   };
 
 
@@ -179,7 +179,7 @@ export default function Chatbot() {
     if (!voiceOutput) return;
     
     // Strip markdown formatting for speech
-    const cleanText = text.replace(/[*_#\[\]`]/g, '');
+    const cleanText = text.replace(/[*_#[\]`]/g, '');
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/speech/tts`, {

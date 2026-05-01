@@ -1,4 +1,4 @@
-import { FaMoon, FaSun, FaUniversalAccess, FaMicrophone, FaLanguage, FaShieldAlt, FaPalette, FaBell, FaTrash } from 'react-icons/fa';
+import { FaMicrophone, FaShieldAlt, FaPalette, FaBell, FaTrash } from 'react-icons/fa';
 import { useLanguage } from './LanguageContext';
 import { useState } from 'react';
 
