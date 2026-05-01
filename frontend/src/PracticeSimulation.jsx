@@ -37,7 +37,7 @@ export default function PracticeSimulation() {
       audioRef.current.pause();
     }
     
-    const cleanText = text.replace(/[*_#[\]`]/g, '');
+    const cleanText = text.replace(/[*_#\[\]`]/g, '');
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/speech/tts`, {

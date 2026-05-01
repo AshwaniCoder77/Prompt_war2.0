@@ -15,7 +15,10 @@ export default function Chatbot() {
   const [mode, setMode] = useState('intermediate');
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [voiceOutput, setVoiceOutput] = useState(true);
+  const [voiceOutput, setVoiceOutput] = useState(() => {
+    const saved = localStorage.getItem('chatbot_voice');
+    return saved === null ? true : saved === 'true';
+  });
   
   const messagesEndRef = useRef(null);
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -176,10 +179,14 @@ export default function Chatbot() {
   };
 
   const speakText = async (text) => {
-    if (!voiceOutput) return;
+    if (!voiceOutput) {
+      console.log('🔇 Voice output is disabled');
+      return;
+    }
     
     // Strip markdown formatting for speech
-    const cleanText = text.replace(/[*_#[\]`]/g, '');
+    const cleanText = text.replace(/[*_#\[\]`]/g, '');
+    console.log('🗣️ Attempting to speak:', cleanText.substring(0, 50) + '...');
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/speech/tts`, {
@@ -191,22 +198,30 @@ export default function Chatbot() {
 
       if (response.ok) {
         const audioBlob = await response.blob();
+        console.log('🎵 Audio blob received, size:', audioBlob.size);
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
-        audio.play();
+        
+        audio.play().catch(e => {
+          console.error('🚫 Audio play failed:', e);
+          if (e.name === 'NotAllowedError') {
+             alert("Playback blocked. Please click anywhere on the page to enable audio.");
+          }
+        });
+
         audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
           if (audioRef.current === audio) audioRef.current = null;
         };
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error("Failed to fetch TTS:", response.status, errorData);
+        console.error("❌ Failed to fetch TTS:", response.status, errorData);
         const detailMsg = errorData.details ? `\nDetails: ${errorData.details}` : '';
-        alert(`Audio Error: ${response.status}${detailMsg}\nCheck backend logs.`);
+        alert(`Audio Error: ${response.status}${detailMsg}`);
       }
     } catch (error) {
-      console.error("TTS Error:", error);
-      alert("Network Error: Could not connect to audio service.");
+      console.error("❌ TTS Network Error:", error);
     }
   };
 
@@ -224,9 +239,13 @@ export default function Chatbot() {
           <button 
             className="icon-btn" 
             style={{ width: '36px', height: '36px', fontSize: '1rem', background: 'transparent' }}
-            onClick={() => setVoiceOutput(!voiceOutput)}
+            onClick={() => {
+              const newState = !voiceOutput;
+              setVoiceOutput(newState);
+              localStorage.setItem('chatbot_voice', newState);
+            }}
           >
-            {voiceOutput ? <FaVolumeUp /> : <FaVolumeMute />}
+            {voiceOutput ? <FaVolumeUp style={{ color: 'var(--primary)' }} /> : <FaVolumeMute />}
           </button>
           <select value={mode} onChange={(e) => setMode(e.target.value)}>
             <option value="beginner">Beginner</option>
