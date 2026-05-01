@@ -12,6 +12,7 @@ const path = require('path');
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 app.use(cors());
 app.use(express.json());

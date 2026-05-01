@@ -78,6 +78,7 @@ export default function Resources() {
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
               ></iframe>
             </div>
             <div style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{t('resources.video1')}</div>
@@ -91,6 +92,7 @@ export default function Resources() {
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
               ></iframe>
             </div>
             <div style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{t('resources.video2')}</div>
