@@ -11,24 +11,32 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Helper to get Google Cloud credentials
 const getGCloudConfig = () => {
-  try {
-    if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+  // 1. Highest Priority: Environment Variable (Safe for Google Secret Manager)
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+    try {
       const cleanJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON.trim();
+      console.log('🔐 Using credentials from environment variable.');
       return { credentials: JSON.parse(cleanJson) };
+    } catch (err) {
+      console.error('❌ Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON:', err.message);
     }
-  } catch (err) {
-    console.error('❌ Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON:', err.message);
   }
   
-  // Local fallback: Look in the backend folder
+  // 2. Second Priority: Explicit Key Filename (Safe for local testing)
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    console.log('📂 Using credentials from GOOGLE_APPLICATION_CREDENTIALS file path.');
+    return { keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS };
+  }
+
+  // 3. Fallback: Local file in backend folder
   const localKey = path.join(__dirname, '..', 'speechServiceAccount.json');
   if (fs.existsSync(localKey)) {
     console.log('🏠 Using local speech service account key.');
     return { keyFilename: localKey };
   }
   
-  // Cloud Run Fallback: Return empty object to trigger ADC
-  console.log('☁️ No explicit credentials found. Falling back to Application Default Credentials (ADC).');
+  // 4. Final Fallback: Application Default Credentials (ADC) for Cloud Run service account
+  console.log('☁️ Falling back to Application Default Credentials (ADC).');
   return {}; 
 };
 

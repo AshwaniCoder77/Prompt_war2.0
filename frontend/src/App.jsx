@@ -1,18 +1,27 @@
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { FaHome, FaRobot, FaClipboardList, FaCalendarAlt, FaMapMarkerAlt, FaBook, FaCog, FaUniversalAccess, FaBullhorn, FaGlobe, FaCheckCircle } from 'react-icons/fa';
+import { FaHome, FaRobot, FaClipboardList, FaCalendarAlt, FaMapMarkerAlt, FaBook, FaCog, FaUniversalAccess, FaBullhorn, FaGlobe, FaCheckCircle, FaSpinner } from 'react-icons/fa';
 import { API_BASE_URL } from './config';
 import './App.css';
-import ProcessList from './ProcessList';
-import Chatbot from './Chatbot';
-import PollingMap from './PollingMap';
-import Timeline from './Timeline';
-import Resources from './Resources';
-import Settings from './Settings';
-import PracticeSimulation from './PracticeSimulation';
-import RemindersPanel from './RemindersPanel';
 import { LanguageProvider, useLanguage } from './LanguageContext';
 import { requestForToken, onMessageListener } from './firebase-config';
+
+// Lazy loaded components for better performance
+const ProcessList = lazy(() => import('./ProcessList'));
+const Chatbot = lazy(() => import('./Chatbot'));
+const PollingMap = lazy(() => import('./PollingMap'));
+const Timeline = lazy(() => import('./Timeline'));
+const Resources = lazy(() => import('./Resources'));
+const Settings = lazy(() => import('./Settings'));
+const PracticeSimulation = lazy(() => import('./PracticeSimulation'));
+const RemindersPanel = lazy(() => import('./RemindersPanel'));
+
+const LoadingFallback = () => (
+  <div className="loading-fallback" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '200px', color: 'var(--primary)' }}>
+    <FaSpinner className="spin" size={40} />
+    <p style={{ marginTop: '1rem', fontWeight: 500 }}>Loading...</p>
+  </div>
+);
 
 const indianLanguages = [
   { code: 'en', name: 'English' },
@@ -237,35 +246,37 @@ function MainApp() {
             </div>
           </header>
 
-          <RemindersPanel 
-            isOpen={isRemindersOpen} 
-            onClose={() => setIsRemindersOpen(false)} 
-            reminders={reminders}
-            setReminders={setReminders}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <RemindersPanel 
+              isOpen={isRemindersOpen} 
+              onClose={() => setIsRemindersOpen(false)} 
+              reminders={reminders}
+              setReminders={setReminders}
+            />
 
-          <Routes>
-            <Route path="/" element={<HomeDashboard />} />
-            <Route path="/ask-assistant" element={<div className="page-container" style={{padding:0, border:'none', background:'transparent', boxShadow:'none'}}><Chatbot /></div>} />
-            <Route path="/process" element={<div className="page-container"><ProcessList /></div>} />
-            <Route path="/polling" element={<div className="page-container"><PollingMap /></div>} />
-            <Route path="/timeline" element={<div className="page-container"><Timeline /></div>} />
-            <Route path="/resources" element={<div className="page-container"><Resources /></div>} />
-            <Route path="/practice" element={<div className="page-container" style={{backgroundColor: 'transparent', boxShadow: 'none'}}><PracticeSimulation /></div>} />
-            <Route path="/settings" element={
-              <div className="page-container">
-                <Settings 
-                  isDark={isDark} 
-                  setIsDark={setIsDark}
-                  highContrast={highContrast}
-                  setHighContrast={setHighContrast}
-                  largeText={largeText}
-                  setLargeText={setLargeText}
-                  openReminders={() => setIsRemindersOpen(true)}
-                />
-              </div>
-            } />
-          </Routes>
+            <Routes>
+              <Route path="/" element={<HomeDashboard />} />
+              <Route path="/ask-assistant" element={<div className="page-container" style={{padding:0, border:'none', background:'transparent', boxShadow:'none'}}><Chatbot /></div>} />
+              <Route path="/process" element={<div className="page-container"><ProcessList /></div>} />
+              <Route path="/polling" element={<div className="page-container"><PollingMap /></div>} />
+              <Route path="/timeline" element={<div className="page-container"><Timeline /></div>} />
+              <Route path="/resources" element={<div className="page-container"><Resources /></div>} />
+              <Route path="/practice" element={<div className="page-container" style={{backgroundColor: 'transparent', boxShadow: 'none'}}><PracticeSimulation /></div>} />
+              <Route path="/settings" element={
+                <div className="page-container">
+                  <Settings 
+                    isDark={isDark} 
+                    setIsDark={setIsDark}
+                    highContrast={highContrast}
+                    setHighContrast={setHighContrast}
+                    largeText={largeText}
+                    setLargeText={setLargeText}
+                    openReminders={() => setIsRemindersOpen(true)}
+                  />
+                </div>
+              } />
+            </Routes>
+          </Suspense>
         </main>
       </div>
     </Router>

@@ -77,9 +77,45 @@ describe('API Integration Tests', () => {
       .expect(200)
       .end((err, res) => {
         if (err) return done(err);
-        // Expecting HTML content (index.html)
         expect(res.header['content-type']).to.include('text/html');
         done();
       });
+  });
+
+  describe('Edge Cases', () => {
+    it('POST /api/chat with empty message should return 400', (done) => {
+      request(app)
+        .post('/api/chat')
+        .send({ message: '', mode: 'beginner' })
+        .expect(400)
+        .end((err, res) => {
+          if (err) return done(err);
+          expect(res.body).to.have.property('error');
+          done();
+        });
+    });
+
+    it('POST /api/translate with empty texts should return 200 with empty object', (done) => {
+      request(app)
+        .post('/api/translate')
+        .send({ texts: {}, targetLanguage: 'hi' })
+        .expect(200)
+        .end((err, res) => {
+          if (err) return done(err);
+          expect(res.body.translated).to.be.empty;
+          done();
+        });
+    });
+
+    it('GET /api/reminders should return an array', (done) => {
+      request(app)
+        .get('/api/reminders')
+        .expect(200)
+        .end((err, res) => {
+          if (err) return done(err);
+          expect(res.body).to.be.an('array');
+          done();
+        });
+    });
   });
 });

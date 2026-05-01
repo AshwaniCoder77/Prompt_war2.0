@@ -7,13 +7,36 @@ const PORT = process.env.PORT || 8080;
 const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
 
 // Security & Middleware
 app.use(helmet({
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://maps.googleapis.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https://maps.gstatic.com", "https://*.googleapis.com"],
+      connectSrc: ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com", "https://*.google-analytics.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
   crossOriginEmbedderPolicy: false,
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
+
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', limiter);
+
 app.use(cors());
 app.use(express.json());
 
