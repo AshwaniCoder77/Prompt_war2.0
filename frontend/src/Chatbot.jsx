@@ -201,7 +201,8 @@ export default function Chatbot() {
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error("Failed to fetch TTS:", response.status, errorData);
-        alert(`Audio Error: ${response.status}. Check backend logs.`);
+        const detailMsg = errorData.details ? `\nDetails: ${errorData.details}` : '';
+        alert(`Audio Error: ${response.status}${detailMsg}\nCheck backend logs.`);
       }
     } catch (error) {
       console.error("TTS Error:", error);
