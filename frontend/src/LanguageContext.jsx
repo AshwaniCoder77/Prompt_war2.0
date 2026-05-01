@@ -7,7 +7,7 @@ export const LanguageProvider = ({ children }) => {
   const [lang, setLang] = useState(() => localStorage.getItem('vote_lang') || 'en');
 
   const dict = useMemo(() => {
-    const localePath = `./locales/${lang}.json`;
+    const localePath = `./${lang}.json`;
     return locales[localePath] || enDict;
   }, [lang]);
 
