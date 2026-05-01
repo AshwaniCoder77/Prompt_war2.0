@@ -72,6 +72,10 @@ const enDict = {
   "settings.privacy": "Privacy & Data",
   "settings.voiceData": "Voice Data Storage",
   "settings.voiceDataDesc": "We process audio strictly in-memory. No voice data is ever stored on disk.",
+  "settings.notifications": "Notifications & Reminders",
+  "settings.notificationsDesc": "Manage your election day alerts and reminders",
+  "settings.manageReminders": "Manage Reminders",
+  "settings.clearData": "Clear App Data",
   // Resources
   "resources.title": "Voter Resources & Guidelines",
   "resources.officialPortals": "Official Portals",

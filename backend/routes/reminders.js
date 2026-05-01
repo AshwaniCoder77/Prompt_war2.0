@@ -36,7 +36,7 @@ router.post('/token', (req, res) => {
 router.post('/', (req, res) => {
   const { title, time, priority } = req.body;
   const db = getDB();
-  const newReminder = { id: Date.now(), title, time, priority, enabled: true };
+  const newReminder = { id: Date.now(), title, time, priority, enabled: true, sent: false };
   db.reminders.push(newReminder);
   saveDB(db);
   res.json(newReminder);

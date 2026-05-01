@@ -40,30 +40,10 @@ const indianLanguages = [
   { code: 'sd', name: 'Sindhi (सिन्धी)' }
 ];
 
-function Sidebar({ isOpen, setIsOpen }) {
+function Sidebar({ isOpen, setIsOpen, highContrast, setHighContrast, largeText, setLargeText }) {
   const location = useLocation();
-  const [highContrast, setHighContrast] = useState(() => localStorage.getItem('vote_hc') === 'true' || document.body.classList.contains('high-contrast'));
-  const [largeText, setLargeText] = useState(() => localStorage.getItem('vote_lt') === 'true' || document.body.classList.contains('large-text'));
 
   const { t } = useLanguage();
-
-  useEffect(() => {
-    localStorage.setItem('vote_hc', highContrast);
-    if (highContrast) {
-      document.body.classList.add('high-contrast');
-    } else {
-      document.body.classList.remove('high-contrast');
-    }
-  }, [highContrast]);
-
-  useEffect(() => {
-    localStorage.setItem('vote_lt', largeText);
-    if (largeText) {
-      document.body.classList.add('large-text');
-    } else {
-      document.body.classList.remove('large-text');
-    }
-  }, [largeText]);
 
   const isActive = (path) => location.pathname === path ? 'active' : '';
 
@@ -126,7 +106,30 @@ function MainApp() {
   const [isRemindersOpen, setIsRemindersOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Global Settings State
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('vote_dark') === 'true' || document.body.classList.contains('dark-mode'));
+  const [highContrast, setHighContrast] = useState(() => localStorage.getItem('vote_hc') === 'true' || document.body.classList.contains('high-contrast'));
+  const [largeText, setLargeText] = useState(() => localStorage.getItem('vote_lt') === 'true' || document.body.classList.contains('large-text'));
+
   const [notification, setNotification] = useState({ title: '', body: '' });
+
+  useEffect(() => {
+    localStorage.setItem('vote_dark', isDark);
+    if (isDark) document.body.classList.add('dark-mode');
+    else document.body.classList.remove('dark-mode');
+  }, [isDark]);
+
+  useEffect(() => {
+    localStorage.setItem('vote_hc', highContrast);
+    if (highContrast) document.body.classList.add('high-contrast');
+    else document.body.classList.remove('high-contrast');
+  }, [highContrast]);
+
+  useEffect(() => {
+    localStorage.setItem('vote_lt', largeText);
+    if (largeText) document.body.classList.add('large-text');
+    else document.body.classList.remove('large-text');
+  }, [largeText]);
   const [reminders, setReminders] = useState(() => {
     const saved = localStorage.getItem('vote_reminders');
     return saved ? JSON.parse(saved) : [
@@ -179,15 +182,19 @@ function MainApp() {
     // Local Check Fallback (Check every 30 seconds)
     const interval = setInterval(() => {
       const now = new Date();
-      reminders.forEach(r => {
+      let changed = false;
+      const updatedReminders = reminders.map(r => {
         const rTime = new Date(r.time);
         if (r.enabled && Math.abs(rTime - now) < 30000 && !r.notified) {
            if (Notification.permission === 'granted') {
              new Notification(r.title, { body: "Your election reminder is due!" });
            }
-           r.notified = true; 
+           changed = true;
+           return { ...r, notified: true };
         }
+        return r;
       });
+      if (changed) setReminders(updatedReminders);
     }, 30000);
     return () => clearInterval(interval);
   }, [reminders]);
@@ -197,8 +204,15 @@ function MainApp() {
 
   return (
     <Router>
-      <div className="app-container">
-        <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <div className={`app-container ${isDark ? 'dark-mode' : ''} ${highContrast ? 'high-contrast' : ''} ${largeText ? 'large-text' : ''}`}>
+        <Sidebar 
+          isOpen={isSidebarOpen} 
+          setIsOpen={setIsSidebarOpen} 
+          highContrast={highContrast} 
+          setHighContrast={setHighContrast}
+          largeText={largeText}
+          setLargeText={setLargeText}
+        />
         {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
 
 
@@ -242,7 +256,19 @@ function MainApp() {
             <Route path="/timeline" element={<div className="page-container"><Timeline /></div>} />
             <Route path="/resources" element={<div className="page-container"><Resources /></div>} />
             <Route path="/practice" element={<div className="page-container" style={{backgroundColor: 'transparent', boxShadow: 'none'}}><PracticeSimulation /></div>} />
-            <Route path="/settings" element={<div className="page-container"><Settings /></div>} />
+            <Route path="/settings" element={
+              <div className="page-container">
+                <Settings 
+                  isDark={isDark} 
+                  setIsDark={setIsDark}
+                  highContrast={highContrast}
+                  setHighContrast={setHighContrast}
+                  largeText={largeText}
+                  setLargeText={setLargeText}
+                  openReminders={() => setIsRemindersOpen(true)}
+                />
+              </div>
+            } />
           </Routes>
         </main>
       </div>
