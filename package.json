@@ -1,0 +1,10 @@
+{
+  "name": "vote-for-nation-root",
+  "version": "1.0.0",
+  "description": "Root configuration for Vote For Nation",
+  "scripts": {
+    "gcp-build": "npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend",
+    "start": "cd backend && node index.js"
+  },
+  "dependencies": {}
+}
