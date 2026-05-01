@@ -48,7 +48,11 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server is live on port ${PORT}`);
-});
+// Start server only if not in a test environment
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server is live on port ${PORT}`);
+  });
+}
+
+module.exports = app;
