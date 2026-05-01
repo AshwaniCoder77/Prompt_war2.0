@@ -23,28 +23,31 @@ const getGCloudConfig = () => {
   // Local fallback: Look in the backend folder
   const localKey = path.join(__dirname, '..', 'speechServiceAccount.json');
   if (fs.existsSync(localKey)) {
+    console.log('🏠 Using local speech service account key.');
     return { keyFilename: localKey };
   }
   
-  return null;
+  // Cloud Run Fallback: Return empty object to trigger ADC
+  console.log('☁️ No explicit credentials found. Falling back to Application Default Credentials (ADC).');
+  return {}; 
 };
 
 // Safely initialize clients
 let client;
 let ttsClient;
 
-try {
-  const config = getGCloudConfig();
-  if (config) {
+const initSpeechClients = () => {
+  try {
+    const config = getGCloudConfig();
     client = new speech.SpeechClient(config);
     ttsClient = new textToSpeech.TextToSpeechClient(config);
     console.log('🎙️ Speech & TTS Clients initialized.');
-  } else {
-    console.warn('⚠️ Speech credentials not found. Speech features disabled.');
+  } catch (e) {
+    console.error('❌ Speech Init Error:', e.message);
   }
-} catch (e) {
-  console.error('❌ Speech Init Error:', e.message);
-}
+};
+
+initSpeechClients();
 
 router.post('/transcribe', upload.single('audio'), async (req, res) => {
   try {
@@ -76,7 +79,11 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
     res.json({ text: transcription });
   } catch (error) {
     console.error('Speech-to-Text Error:', error);
-    res.status(500).json({ error: 'Failed to transcribe audio' });
+    res.status(500).json({ 
+      error: 'Failed to transcribe audio', 
+      details: error.message,
+      code: error.code 
+    });
   }
 });
 
@@ -109,7 +116,11 @@ router.post('/tts', async (req, res) => {
     res.send(response.audioContent);
   } catch (error) {
     console.error('Text-to-Speech Error:', error);
-    res.status(500).json({ error: 'Failed to synthesize speech' });
+    res.status(500).json({ 
+      error: 'Failed to synthesize speech', 
+      details: error.message,
+      code: error.code 
+    });
   }
 });
 
