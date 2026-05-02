@@ -60,9 +60,11 @@ const checkAndSendNotifications = async () => {
 };
 
 // Run every minute (except in test environment)
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && process.env.K_SERVICE === undefined) {
   cron.schedule('* * * * *', () => {
-    console.log('🕒 Checking Firestore reminders...');
+    console.log('🕒 Checking Firestore reminders (Local Cron)...');
     checkAndSendNotifications();
   });
 }
+
+module.exports = { checkAndSendNotifications };
