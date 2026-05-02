@@ -14,11 +14,13 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://maps.googleapis.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://maps.googleapis.com", "https://www.youtube.com", "https://s.ytimg.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https://maps.gstatic.com", "https://*.googleapis.com"],
-      connectSrc: ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com", "https://*.google-analytics.com"],
+      imgSrc: ["'self'", "data:", "https://maps.gstatic.com", "https://*.googleapis.com", "https://i.ytimg.com", "https://*.youtube.com"],
+      connectSrc: ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com", "https://*.google-analytics.com", "https://*.youtube.com", "https://youtube.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      mediaSrc: ["'self'", "data:"],
+      frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com"],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: [],
     },
