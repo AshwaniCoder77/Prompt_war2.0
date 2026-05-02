@@ -156,22 +156,32 @@ function MainApp() {
   }, []);
 
   useEffect(() => {
-    // Request for token on mount
-    requestForToken().then(async (fcmToken) => {
-      if (fcmToken) {
-        try {
-          const response = await fetch(`${API_BASE_URL}/api/reminders/token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: fcmToken })
+    // 1. Register Service Worker explicitly for background notifications
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('✅ Service Worker registered:', registration.scope);
+          
+          // 2. Request for token using this registration
+          requestForToken(registration).then(token => {
+            if (token) {
+              localStorage.setItem('fcm_token', token);
+              // Sync with backend
+              fetch(`${API_BASE_URL}/api/reminders/token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+              }).then(() => console.log('FCM Token synced with backend'));
+            }
           });
-          if (response.ok) console.log("FCM Token synced with backend");
-        } catch (e) {
-          console.error("Failed to sync FCM token", e);
-        }
-      }
-    });
+        })
+        .catch((err) => {
+          console.error('❌ Service Worker registration failed:', err);
+        });
+    }
+  }, []);
 
+  useEffect(() => {
     // Foreground listener
     const unsubscribe = onMessageListener(payload => {
       console.log('Foreground message:', payload);

@@ -17,12 +17,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const messaging = getMessaging(app);
 
-export const requestForToken = () => {
-  return getToken(messaging, { vapidKey: 'BBDd8aLa-SHyZFphOeQGN0DCSoeZArZaiHgP7ogsEa4YOsfLQFBS2VS3fQt3wHdaoeqqsTts_BBN0ndWNzfUNUI' })
+export const requestForToken = (registration) => {
+  return getToken(messaging, { 
+    vapidKey: 'BBDd8aLa-SHyZFphOeQGN0DCSoeZArZaiHgP7ogsEa4YOsfLQFBS2VS3fQt3wHdaoeqqsTts_BBN0ndWNzfUNUI',
+    serviceWorkerRegistration: registration
+  })
     .then((currentToken) => {
       if (currentToken) {
         console.log('Current token for client: ', currentToken);
-        // Track this token in your backend
         return currentToken;
       } else {
         console.log('No registration token available. Request permission to generate one.');
