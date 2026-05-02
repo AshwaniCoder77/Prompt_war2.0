@@ -209,6 +209,7 @@ function MainApp() {
   return (
     <Router>
       <div className={`app-container ${isDark ? 'dark-mode' : ''} ${highContrast ? 'high-contrast' : ''} ${largeText ? 'large-text' : ''}`}>
+        <a href="#main-content" className="skip-link">Skip to main content</a>
         <Sidebar 
           isOpen={isSidebarOpen} 
           setIsOpen={setIsSidebarOpen} 
@@ -221,7 +222,7 @@ function MainApp() {
 
 
         {/* Main Content Area */}
-        <main className="main-content">
+        <main className="main-content" id="main-content">
           <header className="top-header">
             <button className="hamburger-menu" onClick={() => setIsSidebarOpen(true)} aria-label="Open menu">
               ☰

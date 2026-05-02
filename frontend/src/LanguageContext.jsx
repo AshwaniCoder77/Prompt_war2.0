@@ -13,6 +13,7 @@ export const LanguageProvider = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('vote_lang', lang);
+    document.documentElement.lang = lang; // Accessibility: Update HTML lang tag for screen readers
   }, [lang]);
 
   const t = (key) => dict[key] || enDict[key] || key;

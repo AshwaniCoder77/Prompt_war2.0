@@ -256,7 +256,7 @@ export default function Chatbot() {
         </div>
       </div>
 
-      <div className="chatbot-messages">
+      <div className="chatbot-messages" aria-live="polite">
         {messages.map((msg, index) => (
           <div key={index} className={`message-wrapper ${msg.sender}`}>
             <div className={`message-bubble ${msg.sender}`}>

@@ -25,6 +25,11 @@ app.use(helmet({
       upgradeInsecureRequests: [],
     },
   },
+  hsts: {
+    maxAge: 63072000,
+    includeSubDomains: true,
+    preload: true
+  },
   crossOriginEmbedderPolicy: false,
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
