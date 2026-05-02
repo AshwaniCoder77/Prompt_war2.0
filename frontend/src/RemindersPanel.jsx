@@ -13,33 +13,49 @@ export default function RemindersPanel({ isOpen, onClose, reminders, setReminder
     e.preventDefault();
     if (!newReminder.title || !newReminder.time) return;
     
-    const reminder = {
-      ...newReminder,
-      id: Date.now(),
-      enabled: true
-    };
-    
-    // Optimistic UI update
-    setReminders([...reminders, reminder]);
-    setNewReminder({ title: '', time: '', priority: 'medium' });
-    setShowAdd(false);
-
-    // Sync to backend
+    // Sync to backend first to get the Firestore ID
     try {
-        await fetch(`${API_BASE_URL}/api/reminders`, {
+        const response = await fetch(`${API_BASE_URL}/api/reminders`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...newReminder, token: localStorage.getItem('fcm_token') })
         });
-      console.log('Reminder synced to backend');
+        
+        if (response.ok) {
+          const savedReminder = await response.json();
+          setReminders([...reminders, savedReminder]);
+          console.log('Reminder synced to Firestore');
+        }
     } catch (err) {
       console.error('Failed to sync reminder to backend:', err);
+      // Fallback: local only if backend fails (though it won't persist well)
+      setReminders([...reminders, { ...newReminder, id: Date.now(), enabled: true }]);
     }
+    
+    setNewReminder({ title: '', time: '', priority: 'medium' });
+    setShowAdd(false);
   };
 
 
-  const toggleReminder = (id) => {
-    setReminders(reminders.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r));
+  const toggleReminder = async (id) => {
+    const reminder = reminders.find(r => r.id === id);
+    if (!reminder) return;
+
+    const newEnabled = !reminder.enabled;
+    
+    // Optimistic UI update
+    setReminders(reminders.map(r => r.id === id ? { ...r, enabled: newEnabled } : r));
+
+    // Sync to backend
+    try {
+      await fetch(`${API_BASE_URL}/api/reminders/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: newEnabled })
+      });
+    } catch (err) {
+      console.error('Failed to toggle reminder on backend:', err);
+    }
   };
 
   const deleteReminder = async (id) => {

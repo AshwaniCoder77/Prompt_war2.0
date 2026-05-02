@@ -1,84 +1,68 @@
 const cron = require('node-cron');
-const { admin } = require('../config/firebase');
-
-const fs = require('fs');
-const path = require('path');
-
-const DB_PATH = path.join(__dirname, '../data/reminders.json');
-
-// Ensure data directory exists
-if (!fs.existsSync(path.dirname(DB_PATH))) {
-  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-}
-if (!fs.existsSync(DB_PATH)) {
-  fs.writeFileSync(DB_PATH, JSON.stringify({ reminders: [], tokens: [] }));
-}
-
+const { admin, db } = require('../config/firebase');
 
 const checkAndSendNotifications = async () => {
-  if (!fs.existsSync(DB_PATH)) return;
+  if (!db) return;
 
-  const db = JSON.parse(fs.readFileSync(DB_PATH));
   const now = new Date();
   
-  const dueReminders = db.reminders.filter(r => {
-    const reminderTime = new Date(r.time);
-    // Check if reminder is enabled and time is within this minute
-    return r.enabled && 
-           reminderTime <= now && 
-           !r.sent; // Ensure we don't send multiple times
-  });
+  try {
+    // 1. Fetch due reminders (enabled and not yet sent)
+    const remindersSnapshot = await db.collection('reminders')
+      .where('enabled', '==', true)
+      .where('sent', '==', false)
+      .get();
 
-  if (dueReminders.length === 0) {
-    // console.log('No due reminders found.');
-    return;
-  }
+    if (remindersSnapshot.empty) return;
 
-  console.log(`Found ${dueReminders.length} due reminders.`);
+    // 2. Fetch all registered FCM tokens
+    const tokensSnapshot = await db.collection('fcm_tokens').get();
+    const tokens = tokensSnapshot.docs.map(doc => doc.id);
 
-  for (const reminder of dueReminders) {
-    console.log(`Attempting to send notification for: ${reminder.title}`);
-    
-    const message = {
-      notification: {
-        title: reminder.title,
-        body: `Time for your election reminder: ${reminder.title}`,
-      },
-      tokens: db.tokens, 
-    };
-
-    if (admin.apps.length > 0 && db.tokens.length > 0) {
-      try {
-        console.log(`Sending to ${db.tokens.length} tokens...`);
-        const response = await admin.messaging().sendEachForMulticast(message);
-        console.log(`✅ ${response.successCount} messages were sent successfully. Failures: ${response.failureCount}`);
-        if (response.failureCount > 0) {
-          response.responses.forEach((resp, idx) => {
-            if (!resp.success) {
-              console.error(`❌ Failure for token ${db.tokens[idx].substring(0, 10)}...: ${resp.error.message}`);
-            }
-          });
-        }
-      } catch (error) {
-        console.error('❌ FCM Send Error:', error);
-      }
-    } else {
-      console.warn('⚠️ Cannot send: No Firebase app initialized or no tokens registered.');
+    if (tokens.length === 0) {
+      console.warn('⚠️ Found due reminders but no registered FCM tokens.');
+      return;
     }
 
+    console.log(`🔔 Found ${remindersSnapshot.size} due reminders. Sending to ${tokens.length} tokens.`);
 
-    // Mark as sent
-    reminder.sent = true;
+    for (const doc of remindersSnapshot.docs) {
+      const reminder = doc.data();
+      const reminderTime = new Date(reminder.time);
+
+      // Only send if the scheduled time has arrived
+      if (reminderTime <= now) {
+        console.log(`🚀 Attempting to send notification for: ${reminder.title}`);
+        
+        const message = {
+          notification: {
+            title: reminder.title,
+            body: `Time for your election reminder: ${reminder.title}`,
+          },
+          tokens: tokens, 
+        };
+
+        try {
+          const response = await admin.messaging().sendEachForMulticast(message);
+          console.log(`✅ ${response.successCount} messages were sent successfully. Failures: ${response.failureCount}`);
+          
+          // Mark as sent in Firestore
+          await doc.ref.update({ sent: true, sentAt: new Date().toISOString() });
+          
+        } catch (error) {
+          console.error(`❌ FCM Send Error for reminder ${doc.id}:`, error);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('❌ Scheduler Error:', error);
   }
-
-  // Update DB
-  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
 };
 
 // Run every minute (except in test environment)
 if (process.env.NODE_ENV !== 'test') {
   cron.schedule('* * * * *', () => {
-    console.log('Checking reminders...');
+    console.log('🕒 Checking Firestore reminders...');
     checkAndSendNotifications();
   });
 }

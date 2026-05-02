@@ -138,17 +138,22 @@ function MainApp() {
     if (largeText) document.body.classList.add('large-text');
     else document.body.classList.remove('large-text');
   }, [largeText]);
-  const [reminders, setReminders] = useState(() => {
-    const saved = localStorage.getItem('vote_reminders');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, title: "Election Day Reminder", time: "2026-05-15T07:00", enabled: true, priority: 'high' },
-      { id: 2, title: "Register to Vote Deadline", time: "2026-04-15T23:59", enabled: true, priority: 'medium' }
-    ];
-  });
+  const [reminders, setReminders] = useState([]);
 
   useEffect(() => {
-    localStorage.setItem('vote_reminders', JSON.stringify(reminders));
-  }, [reminders]);
+    const fetchReminders = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/reminders`);
+        if (response.ok) {
+          const data = await response.json();
+          setReminders(data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch reminders from backend", e);
+      }
+    };
+    fetchReminders();
+  }, []);
 
   useEffect(() => {
     // Request for token on mount
