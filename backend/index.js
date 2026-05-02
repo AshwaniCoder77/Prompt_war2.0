@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const app = express();
+app.set('trust proxy', 1); // Trust Cloud Run proxy for rate limiting and IP detection
 const PORT = process.env.PORT || 8080;
 
 

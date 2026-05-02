@@ -156,10 +156,10 @@ router.patch('/:id', async (req, res) => {
 const { checkAndSendNotifications } = require('../services/notificationScheduler');
 
 /**
- * @route POST /api/reminders/cron-trigger
- * @description Wakes up the server to check for due reminders. Called by Cloud Scheduler.
+ * @route ALL /api/reminders/cron-trigger
+ * @description Wakes up the server to check for due reminders.
  */
-router.post('/cron-trigger', async (req, res) => {
+router.all('/cron-trigger', async (req, res) => {
   console.log('☁️ Cron Trigger received');
   try {
     await checkAndSendNotifications();
