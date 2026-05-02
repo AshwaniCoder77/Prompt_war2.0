@@ -3,7 +3,13 @@ const router = express.Router();
 const { verifyToken } = require('../middleware/auth');
 const { db } = require('../config/firebase');
 
-// Get user progress
+/**
+ * @route GET /api/progress
+ * @description Fetches the current user's election process progress from Firebase.
+ * @requires Authentication (Bearer Token)
+ * @returns {Object} 200 - User progress data object.
+ * @returns {Object} 500 - Fetch error message.
+ */
 router.get('/', verifyToken, async (req, res) => {
   try {
     const userId = req.user.uid;
@@ -29,7 +35,16 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
-// Update user progress
+/**
+ * @route POST /api/progress/update
+ * @description Updates a specific step in the user's progress.
+ * @requires Authentication (Bearer Token)
+ * @param {string} req.body.step - The step ID to update (e.g., 'registration').
+ * @param {boolean} req.body.completed - The new completion status.
+ * @returns {Object} 200 - Success message.
+ * @returns {Object} 400 - Invalid request body.
+ * @returns {Object} 500 - Update error message.
+ */
 router.post('/update', verifyToken, async (req, res) => {
   try {
     const userId = req.user.uid;

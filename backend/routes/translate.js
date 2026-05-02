@@ -26,6 +26,15 @@ const ensureTranslationsDir = async () => {
 };
 ensureTranslationsDir();
 
+/**
+ * @route POST /api/translate
+ * @description Translates a JSON object of text strings into a target language using Gemini AI with file caching.
+ * @param {Object} req.body.texts - Key-value pairs of strings to translate.
+ * @param {string} req.body.targetLanguage - Target language code (e.g., 'hi', 'bn').
+ * @returns {Object} 200 - JSON with 'translated' object containing translated strings.
+ * @returns {Object} 400 - Error if texts or targetLanguage is missing.
+ * @returns {Object} 500 - Translation or parsing error.
+ */
 router.post('/', async (req, res) => {
   try {
     const { texts, targetLanguage } = req.body;

@@ -19,7 +19,13 @@ const saveDB = (data) => {
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 };
 
-// Register Token
+/**
+ * @route POST /api/reminders/token
+ * @description Registers an FCM device token for push notifications.
+ * @param {string} req.body.token - The FCM registration token.
+ * @returns {Object} 200 - Success status.
+ * @returns {Object} 400 - Error if token is missing.
+ */
 router.post('/token', (req, res) => {
   const { token } = req.body;
   if (!token) return res.status(400).json({ error: 'Token required' });
@@ -32,7 +38,14 @@ router.post('/token', (req, res) => {
   res.json({ success: true });
 });
 
-// Add Reminder
+/**
+ * @route POST /api/reminders
+ * @description Creates a new election reminder.
+ * @param {string} req.body.title - Reminder message.
+ * @param {string} req.body.time - Scheduled time (ISO string).
+ * @param {string} [req.body.priority='medium'] - Reminder priority.
+ * @returns {Object} 200 - The created reminder object.
+ */
 router.post('/', (req, res) => {
   const { title, time, priority } = req.body;
   const db = getDB();
@@ -42,13 +55,22 @@ router.post('/', (req, res) => {
   res.json(newReminder);
 });
 
-// Get Reminders
+/**
+ * @route GET /api/reminders
+ * @description Fetches all registered election reminders.
+ * @returns {Array} 200 - List of reminder objects.
+ */
 router.get('/', (req, res) => {
   const db = getDB();
   res.json(db.reminders);
 });
 
-// Delete Reminder
+/**
+ * @route DELETE /api/reminders/:id
+ * @description Deletes a specific reminder by its ID.
+ * @param {string} req.params.id - The unique ID of the reminder.
+ * @returns {Object} 200 - Success status.
+ */
 router.delete('/:id', (req, res) => {
   const { id } = req.params;
   const db = getDB();
@@ -57,7 +79,13 @@ router.delete('/:id', (req, res) => {
   res.json({ success: true });
 });
 
-// Test FCM Loop
+/**
+ * @route POST /api/reminders/test-fcm
+ * @description Triggers a test push notification to all registered device tokens.
+ * @returns {Object} 200 - Details about success/failure counts.
+ * @returns {Object} 400 - Error if no devices are registered.
+ * @returns {Object} 500 - FCM service error.
+ */
 router.post('/test-fcm', async (req, res) => {
 
   const db = getDB();

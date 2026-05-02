@@ -24,6 +24,16 @@ Indian Election Process Knowledge Base:
 6. Identity Proof: To vote, one must carry their EPIC card or one of the 11 alternative photo ID documents specified by the Election Commission of India.
 `;
 
+/**
+ * @route POST /api/chat
+ * @description Handles user queries about the Indian election process using Google Gemini AI.
+ * @param {string} req.body.message - The user's question or message.
+ * @param {string} [req.body.mode='intermediate'] - Complexity level of the response ('beginner', 'intermediate', 'expert').
+ * @param {string} [req.body.language='en'] - Target language code for the response.
+ * @returns {Object} 200 - Returns a JSON object with the 'reply' field.
+ * @returns {Object} 400 - Error if message is missing or API key is invalid.
+ * @returns {Object} 500 - Generic server error message.
+ */
 router.post('/', async (req, res) => {
   try {
     const { message, mode, language } = req.body; // mode: 'beginner', 'intermediate', 'expert'

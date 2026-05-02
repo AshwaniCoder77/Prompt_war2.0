@@ -57,6 +57,15 @@ const initSpeechClients = () => {
 
 initSpeechClients();
 
+/**
+ * @route POST /api/speech/transcribe
+ * @description Transcribes audio data (WebM Opus) to text using Google Cloud Speech-to-Text.
+ * @param {file} audio - Multi-part file containing the audio data.
+ * @param {string} language - Source language code (e.g., 'en', 'hi').
+ * @returns {Object} 200 - JSON with transcribed 'text'.
+ * @returns {Object} 503 - Service unavailable if Speech client is not initialized.
+ * @returns {Object} 500 - Transcription error details.
+ */
 router.post('/transcribe', upload.single('audio'), async (req, res) => {
   try {
     if (!client) return res.status(503).json({ error: 'Speech service not available' });
@@ -95,6 +104,15 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
   }
 });
 
+/**
+ * @route POST /api/speech/tts
+ * @description Converts text into synthesized speech (MP3) using Google Cloud Text-to-Speech.
+ * @param {string} req.body.text - The text to convert to speech.
+ * @param {string} [req.body.language='en'] - Target language code.
+ * @returns {Object} 200 - JSON with 'audioContent' (Base64) and 'contentType'.
+ * @returns {Object} 503 - Service unavailable if TTS client is not initialized.
+ * @returns {Object} 500 - Synthesis error details.
+ */
 router.post('/tts', async (req, res) => {
   try {
     if (!ttsClient) return res.status(503).json({ error: 'TTS service not available' });
