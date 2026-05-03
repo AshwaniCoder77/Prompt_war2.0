@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from '@react-google-maps/api';
 import { API_BASE_URL } from './config';
 
 const containerStyle = {
@@ -50,28 +50,53 @@ function MapContent({ apiKey }) {
       }}
     >
       {mockStations.map(station => (
-        <Marker
+        <MarkerF
           key={station.id}
           position={station.location}
           onClick={() => setSelectedStation(station)}
+          animation={window.google.maps.Animation.DROP}
         />
       ))}
 
       {selectedStation && (
-        <InfoWindow
+        <InfoWindowF
           position={selectedStation.location}
           onCloseClick={() => setSelectedStation(null)}
         >
-          <div style={{ padding: '0.5rem', color: 'black' }}>
-            <h4 style={{ margin: '0 0 0.5rem 0' }}>{selectedStation.name}</h4>
-            <p style={{ margin: 0 }}>Open: 7:00 AM - 6:00 PM</p>
+          <div style={{ 
+            padding: '12px', 
+            maxWidth: '220px',
+            backgroundColor: '#1E1E2E', // Modern dark background
+            color: 'white',
+            borderRadius: '12px',
+            fontFamily: 'Inter, system-ui, sans-serif'
+          }}>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '1rem', color: '#A78BFA' }}>
+              {selectedStation.name}
+            </h4>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', fontSize: '0.85rem', opacity: 0.9 }}>
+              <span style={{ color: '#10B981' }}>●</span> Open: 7 AM - 6 PM
+            </div>
             <button 
-              style={{ marginTop: '0.5rem', background: '#4F46E5', color: 'white', border: 'none', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer' }}
+              style={{ 
+                width: '100%',
+                padding: '8px',
+                background: 'linear-gradient(135deg, #6366F1 0%, #A78BFA 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                transition: 'transform 0.2s'
+              }}
+              onMouseOver={(e) => e.target.style.transform = 'scale(1.02)'}
+              onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
             >
               Get Directions
             </button>
           </div>
-        </InfoWindow>
+        </InfoWindowF>
       )}
     </GoogleMap>
   );

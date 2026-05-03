@@ -120,6 +120,31 @@ button {
   background: none;
 }
 
+select {
+  cursor: pointer;
+  font-family: inherit;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+option {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+}
+
+body.dark-mode option {
+  background-color: #1e293b; /* Explicitly set for dark mode */
+  color: #f8fafc;
+}
+
+.settings-select {
+  padding: 0.6rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
 .btn-primary {
   background: var(--primary);
   color: white;

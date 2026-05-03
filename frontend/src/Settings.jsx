@@ -138,15 +138,7 @@ export default function Settings({
             <select 
               value={aiLevel} 
               onChange={(e) => setAiLevel(e.target.value)}
-              style={{ 
-                padding: '0.6rem', 
-                borderRadius: '8px', 
-                border: '1px solid var(--border-color)', 
-                background: 'var(--bg-main)', 
-                color: 'var(--text-primary)',
-                fontWeight: 500,
-                cursor: 'pointer'
-              }}
+              className="settings-select"
             >
               <option value="beginner">{t('settings.beginner')}</option>
               <option value="intermediate">{t('settings.intermediate')}</option>

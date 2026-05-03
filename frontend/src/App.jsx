@@ -68,26 +68,26 @@ function Sidebar({ isOpen, setIsOpen, highContrast, setHighContrast, largeText, 
         </div>
       </div>
       <nav className="nav-menu">
-        <Link to="/" className={`nav-item ${isActive('/')}`} onClick={() => setIsOpen(false)}>
-          <FaHome /> <span>{t('nav.home')}</span>
+        <Link to="/" className={`nav-item ${isActive('/')}`} onClick={() => setIsOpen(false)} aria-current={location.pathname === '/' ? 'page' : undefined}>
+          <FaHome aria-hidden="true" /> <span>{t('nav.home')}</span>
         </Link>
-        <Link to="/ask-assistant" className={`nav-item ${isActive('/ask-assistant')}`} onClick={() => setIsOpen(false)}>
-          <FaRobot /> <span>{t('nav.askAssistant')}</span>
+        <Link to="/ask-assistant" className={`nav-item ${isActive('/ask-assistant')}`} onClick={() => setIsOpen(false)} aria-current={location.pathname === '/ask-assistant' ? 'page' : undefined}>
+          <FaRobot aria-hidden="true" /> <span>{t('nav.askAssistant')}</span>
         </Link>
-        <Link to="/process" className={`nav-item ${isActive('/process')}`} onClick={() => setIsOpen(false)}>
-          <FaClipboardList /> <span>{t('nav.electionProcess')}</span>
+        <Link to="/process" className={`nav-item ${isActive('/process')}`} onClick={() => setIsOpen(false)} aria-current={location.pathname === '/process' ? 'page' : undefined}>
+          <FaClipboardList aria-hidden="true" /> <span>{t('nav.electionProcess')}</span>
         </Link>
-        <Link to="/timeline" className={`nav-item ${isActive('/timeline')}`} onClick={() => setIsOpen(false)}>
-          <FaCalendarAlt /> <span>{t('nav.timeline')}</span>
+        <Link to="/timeline" className={`nav-item ${isActive('/timeline')}`} onClick={() => setIsOpen(false)} aria-current={location.pathname === '/timeline' ? 'page' : undefined}>
+          <FaCalendarAlt aria-hidden="true" /> <span>{t('nav.timeline')}</span>
         </Link>
-        <Link to="/polling" className={`nav-item ${isActive('/polling')}`} onClick={() => setIsOpen(false)}>
-          <FaMapMarkerAlt /> <span>{t('nav.pollingStation')}</span>
+        <Link to="/polling" className={`nav-item ${isActive('/polling')}`} onClick={() => setIsOpen(false)} aria-current={location.pathname === '/polling' ? 'page' : undefined}>
+          <FaMapMarkerAlt aria-hidden="true" /> <span>{t('nav.pollingStation')}</span>
         </Link>
-        <Link to="/resources" className={`nav-item ${isActive('/resources')}`} onClick={() => setIsOpen(false)}>
-          <FaBook /> <span>{t('nav.resources')}</span>
+        <Link to="/resources" className={`nav-item ${isActive('/resources')}`} onClick={() => setIsOpen(false)} aria-current={location.pathname === '/resources' ? 'page' : undefined}>
+          <FaBook aria-hidden="true" /> <span>{t('nav.resources')}</span>
         </Link>
-        <Link to="/practice" className={`nav-item ${isActive('/practice')}`} onClick={() => setIsOpen(false)}>
-          <FaCheckCircle /> <span>{t('nav.practice')}</span>
+        <Link to="/practice" className={`nav-item ${isActive('/practice')}`} onClick={() => setIsOpen(false)} aria-current={location.pathname === '/practice' ? 'page' : undefined}>
+          <FaCheckCircle aria-hidden="true" /> <span>{t('nav.practice')}</span>
         </Link>
 
         <Link to="/settings" className={`nav-item ${isActive('/settings')}`} onClick={() => setIsOpen(false)}>
@@ -158,26 +158,34 @@ function MainApp() {
   useEffect(() => {
     // 1. Register Service Worker explicitly for background notifications
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        .then((registration) => {
-          console.log('✅ Service Worker registered:', registration.scope);
-          
-          // 2. Request for token using this registration
-          requestForToken(registration).then(token => {
-            if (token) {
-              localStorage.setItem('fcm_token', token);
-              // Sync with backend
-              fetch(`${API_BASE_URL}/api/reminders/token`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token })
-              }).then(() => console.log('FCM Token synced with backend'));
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js')
+          .then((registration) => {
+            console.log('✅ Service Worker registered:', registration.scope);
+            
+            // Ensure SW is active and controlling the page
+            if (navigator.serviceWorker.controller) {
+               requestForToken(registration).then(token => {
+                if (token) {
+                  localStorage.setItem('fcm_token', token);
+                  fetch(`${API_BASE_URL}/api/reminders/token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                  }).then(() => console.log('FCM Token synced with backend'));
+                }
+              });
+            } else {
+              // Wait for it to become active
+              navigator.serviceWorker.addEventListener('controllerchange', () => {
+                window.location.reload(); 
+              });
             }
+          })
+          .catch((err) => {
+            console.error('❌ Service Worker registration failed:', err);
           });
-        })
-        .catch((err) => {
-          console.error('❌ Service Worker registration failed:', err);
-        });
+      });
     }
   }, []);
 
@@ -249,7 +257,7 @@ function MainApp() {
                 value={lang} 
                 onChange={(e) => setLang(e.target.value)}
                 aria-label="Select Language"
-                style={{ appearance: 'none', background: 'transparent', border: 'none', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500, color: 'var(--text-primary)', paddingRight: '1rem' }}
+                className="lang-inner-select"
               >
                 {indianLanguages.map(l => (
                   <option key={l.code} value={l.code}>{l.name}</option>

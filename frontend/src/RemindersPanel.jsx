@@ -18,7 +18,11 @@ export default function RemindersPanel({ isOpen, onClose, reminders, setReminder
         const response = await fetch(`${API_BASE_URL}/api/reminders`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...newReminder, token: localStorage.getItem('fcm_token') })
+          body: JSON.stringify({ 
+            ...newReminder, 
+            time: new Date(newReminder.time).toISOString(), // FIX: Send as UTC
+            token: localStorage.getItem('fcm_token') 
+          })
         });
         
         if (response.ok) {

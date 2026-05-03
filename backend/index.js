@@ -2,36 +2,49 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 app.set('trust proxy', 1); // Trust Cloud Run proxy for rate limiting and IP detection
-const PORT = process.env.PORT || 8080;
-
-
+const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const helmet = require('helmet');
-const path = require('path');
+
+// Local Debug Logger
+if (fs.existsSync(path.join(__dirname, 'error_log.txt'))) {
+  fs.writeFileSync(path.join(__dirname, 'error_log.txt'), ''); // Clear logs on restart
+}
+
+const logError = (msg, err) => {
+  const logMsg = `[${new Date().toISOString()}] ${msg}: ${err.stack || err}\n`;
+  fs.appendFileSync(path.join(__dirname, 'error_log.txt'), logMsg);
+  console.error(`\n❌ ${msg.toUpperCase()}:`, err.message || err);
+};
+
+const PORT = process.env.PORT || 8080;
 const rateLimit = require('express-rate-limit');
 
 // Security & Middleware
+const isProduction = process.env.NODE_ENV === 'production' || process.env.K_SERVICE !== undefined;
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "https://maps.googleapis.com", "https://www.youtube.com", "https://s.ytimg.com", "https://www.gstatic.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https://maps.gstatic.com", "https://*.googleapis.com", "https://i.ytimg.com", "https://*.youtube.com"],
-      connectSrc: ["'self'", "https://*.googleapis.com", "https://fcmregistrations.googleapis.com", "https://*.firebaseio.com", "https://*.google-analytics.com", "https://*.youtube.com", "https://youtube.com"],
+      imgSrc: ["'self'", "data:", "https://maps.gstatic.com", "https://maps.google.com", "https://*.googleapis.com", "https://i.ytimg.com", "https://*.youtube.com"],
+      connectSrc: ["'self'", "https://*.googleapis.com", "https://fcmregistrations.googleapis.com", "https://*.firebaseio.com", "https://*.google-analytics.com", "https://*.youtube.com", "https://youtube.com", "http://localhost:*"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      mediaSrc: ["'self'", "data:"],
+      mediaSrc: ["'self'", "data:", "blob:", "https://*.googleapis.com"],
       frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com"],
       workerSrc: ["'self'", "blob:", "https://www.gstatic.com"],
       objectSrc: ["'none'"],
-      upgradeInsecureRequests: [],
+      upgradeInsecureRequests: isProduction ? [] : null,
     },
   },
-  hsts: {
+  hsts: isProduction ? {
     maxAge: 63072000,
     includeSubDomains: true,
     preload: true
-  },
+  } : false, // Disable HSTS on localhost
   crossOriginEmbedderPolicy: false,
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
@@ -44,7 +57,9 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use('/api/', limiter);
+if (isProduction) {
+  app.use('/api/', limiter);
+}
 
 app.use(cors());
 app.use(express.json());
@@ -66,10 +81,15 @@ try {
 
 // Optional Services
 try {
-  require('./config/firebase');
-  require('./services/notificationScheduler');
+  const { db } = require('./config/firebase');
+  if (db) {
+    console.log('🔥 Firebase Services linked to Express.');
+    require('./services/notificationScheduler');
+  } else {
+    console.warn('⚠️ Notification Scheduler skipped: Firebase not initialized.');
+  }
 } catch (e) {
-  console.error('Error loading services:', e.message);
+  console.error('❌ Error loading services:', e.message);
 }
 
 // Serve static files
@@ -86,5 +106,14 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`🚀 Server is live on port ${PORT}`);
   });
 }
+
+// Global Safety Net (Prevents local crashes)
+process.on('uncaughtException', (err) => {
+  logError('CRITICAL: Uncaught Exception', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logError('CRITICAL: Unhandled Rejection', reason);
+});
 
 module.exports = app;

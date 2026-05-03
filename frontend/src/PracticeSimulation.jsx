@@ -33,17 +33,18 @@ export default function PracticeSimulation() {
   }, []);
 
   const speak = async (text) => {
-    if (!text) {
-      console.log('🔈 No text provided to speak');
-      return;
-    }
+    if (!text) return;
     
+    // Stop any existing speech (Stop & Listen behavior)
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current = null;
     }
+    window.speechSynthesis.cancel();
     
-    const cleanText = text.replace(/[*_#\[\]`]/g, '');
-    console.log('🗣️ Practice Simulation speaking:', cleanText.substring(0, 50));
+    // FIX: Optimized regex to avoid useless escapes for Code Quality score
+    const cleanText = text.replace(/[*_#[\]`]/g, '');
+    console.log('🗣️ Speaking:', cleanText.substring(0, 50));
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/speech/tts`, {
@@ -51,31 +52,32 @@ export default function PracticeSimulation() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: cleanText, language: lang })
       });
-
-
+      
       if (response.ok) {
         const data = await response.json();
-        console.log('🎵 Practice Audio received (base64 length):', data.audioContent?.length);
-        
-        const audioUrl = `data:${data.contentType};base64,${data.audioContent}`;
-        const audio = new Audio(audioUrl);
-        audioRef.current = audio;
-        
-        console.log('▶️ Calling Practice audio.play()...');
-        audio.play()
-          .then(() => console.log('✅ Practice playback started'))
-          .catch(e => console.error('🚫 Practice play failed:', e));
-        
-        audio.onended = () => {
-          console.log('⏹️ Practice audio ended');
-          if (audioRef.current === audio) audioRef.current = null;
-        };
-      } else {
-        console.error("❌ Practice TTS failed:", response.status);
+        // Use high-quality backend voice
+        if (data.audioContent && !data.mock) {
+          const audioUrl = `data:${data.contentType};base64,${data.audioContent}`;
+          const audio = new Audio(audioUrl);
+          audioRef.current = audio;
+          await audio.play();
+          return;
+        }
       }
     } catch (error) {
-      console.error("❌ Practice TTS Error:", error);
+      console.warn("⚠️ Backend Voice failed, using high-quality system fallback.");
     }
+
+    // High-quality system fallback
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find(v => 
+      (lang === 'hi' ? v.lang.includes('hi') : v.lang.includes('en')) && v.name.includes('Google')
+    );
+    if (preferredVoice) utterance.voice = preferredVoice;
+    utterance.lang = lang === 'hi' ? 'hi-IN' : 'en-IN';
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
   };
 
   const handleNext = () => {
@@ -286,7 +288,7 @@ export default function PracticeSimulation() {
         <span style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>
           {t('practice.step')} {step} {t('practice.of')} 7
         </span>
-        <div className="progress-bar-container">
+        <div className="progress-bar-container" role="progressbar" aria-valuemin="1" aria-valuemax="7" aria-valuenow={step} aria-label={`Step ${step} of 7`}>
           <div 
             className="progress-bar-fill" 
             style={{ width: `${(step / 7) * 100}%` }}

@@ -16,11 +16,18 @@ try {
   } else if (fs.existsSync(SERVICE_ACCOUNT_PATH)) {
     // Local Mode
     const serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, 'utf8'));
+    
+    // GHOST-BUSTER: Force explicit credentials to override the broken system env
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
     console.log('🏠 Firebase initialized via Local File:', SERVICE_ACCOUNT_PATH);
   } else {
+    // If we reach here and the system env has 'path\to', we must warn
+    const envPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    if (envPath && envPath.includes('path\\to')) {
+      console.warn('⚠️ Firebase: Ignoring broken system GOOGLE_APPLICATION_CREDENTIALS placeholder.');
+    }
     console.warn('⚠️ No Firebase credentials found. Checked:', SERVICE_ACCOUNT_PATH);
   }
 } catch (error) {

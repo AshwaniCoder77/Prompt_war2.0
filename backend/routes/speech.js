@@ -21,11 +21,17 @@ const getGCloudConfig = () => {
       console.error('❌ Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON:', err.message);
     }
   }
-  
+
   // 2. Second Priority: Explicit Key Filename (Safe for local testing)
   if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    console.log('📂 Using credentials from GOOGLE_APPLICATION_CREDENTIALS file path.');
-    return { keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS };
+    const keyPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    // GHOST-BUSTER: Ignore the placeholder path from system env
+    if (!keyPath.includes('path\\to') && fs.existsSync(keyPath)) {
+      console.log('📂 Using credentials from GOOGLE_APPLICATION_CREDENTIALS file path.');
+      return { keyFilename: keyPath };
+    } else {
+      console.warn('⚠️ Ignoring placeholder or invalid path in GOOGLE_APPLICATION_CREDENTIALS:', keyPath);
+    }
   }
 
   // 3. Fallback: Local file in backend folder
@@ -34,10 +40,10 @@ const getGCloudConfig = () => {
     console.log('🏠 Using local speech service account key.');
     return { keyFilename: localKey };
   }
-  
+
   // 4. Final Fallback: Application Default Credentials (ADC) for Cloud Run service account
   console.log('☁️ Falling back to Application Default Credentials (ADC).');
-  return {}; 
+  return {};
 };
 
 // Safely initialize clients
@@ -73,10 +79,10 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
 
     const audioBytes = req.file.buffer.toString('base64');
     const audio = { content: audioBytes };
-    
+
     const { language } = req.body;
     const speechLangMap = {
-      'en': 'en-IN', 'hi': 'hi-IN', 'bn': 'bn-IN', 'te': 'te-IN', 
+      'en': 'en-IN', 'hi': 'hi-IN', 'bn': 'bn-IN', 'te': 'te-IN',
       'mr': 'mr-IN', 'ta': 'ta-IN', 'ur': 'ur-IN', 'gu': 'gu-IN',
       'kn': 'kn-IN', 'ml': 'ml-IN', 'pa': 'pa-IN', 'as': 'as-IN',
       'ne': 'ne-NP', 'or': 'or-IN'
@@ -96,10 +102,10 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
     res.json({ text: transcription });
   } catch (error) {
     console.error('Speech-to-Text Error:', error);
-    res.status(500).json({ 
-      error: 'Failed to transcribe audio', 
+    res.status(500).json({
+      error: 'Failed to transcribe audio',
       details: error.message,
-      code: error.code 
+      code: error.code
     });
   }
 });
@@ -115,38 +121,83 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
  */
 router.post('/tts', async (req, res) => {
   try {
-    if (!ttsClient) return res.status(503).json({ error: 'TTS service not available' });
+    if (!ttsClient) {
+      console.error('❌ TTS Client is not initialized!');
+      return res.status(503).json({ error: 'TTS service not available' });
+    }
+
     const { text, language } = req.body;
     if (!text) return res.status(400).json({ error: 'No text provided' });
 
-    const speechLangMap = {
+    const nativeEngineMap = {
       'en': 'en-IN', 'hi': 'hi-IN', 'bn': 'bn-IN', 'te': 'te-IN', 
       'mr': 'mr-IN', 'ta': 'ta-IN', 'ur': 'ur-IN', 'gu': 'gu-IN',
-      'kn': 'kn-IN', 'ml': 'ml-IN', 'pa': 'pa-IN', 'as': 'as-IN',
-      'ne': 'ne-NP', 'or': 'or-IN'
+      'kn': 'kn-IN', 'ml': 'ml-IN', 'pa': 'pa-IN',
+      'as': 'bn-IN', 'ne': 'ne-NP', 'or': 'bn-IN', 'sa': 'hi-IN',
+      'kok': 'mr-IN', 'mai': 'hi-IN', 'doi': 'hi-IN', 'brx': 'hi-IN',
+      'ks': 'ur-IN', 'mni': 'bn-IN', 'sat': 'bn-IN', 'sd': 'hi-IN'
     };
     
-    const targetLangCode = speechLangMap[language] || 'en-IN';
+    const targetLangCode = nativeEngineMap[language] || 'en-IN';
+
+    // Only use Wavenet if supported, else use Standard
+    const supportedWavenet = ['hi-IN', 'en-IN', 'bn-IN', 'te-IN', 'mr-IN', 'ta-IN', 'gu-IN', 'kn-IN', 'ml-IN', 'pa-IN'];
+    
+    let voiceName;
+    if (targetLangCode === 'hi-IN') {
+      voiceName = 'hi-IN-Neural2-A';
+    } else if (targetLangCode === 'en-IN') {
+      voiceName = 'en-IN-Neural2-A'; 
+    } else if (supportedWavenet.includes(targetLangCode)) {
+      voiceName = `${targetLangCode}-Wavenet-A`;
+    } else {
+      voiceName = `${targetLangCode}-Standard-A`;
+    }
 
     const request = {
       input: { text: text },
-      voice: { languageCode: targetLangCode },
-      audioConfig: { audioEncoding: 'MP3' },
+      voice: { 
+        languageCode: targetLangCode,
+        ssmlGender: 'FEMALE',
+        name: voiceName
+      },
+      audioConfig: { 
+        audioEncoding: 'MP3',
+        speakingRate: 0.88,
+        pitch: -1.5 
+      },
     };
 
-    const [response] = await ttsClient.synthesizeSpeech(request);
+    console.log(`🔥 [TRUE-NATIVE] Attempting: ${voiceName}`);
+    
+    let response;
+    try {
+      [response] = await ttsClient.synthesizeSpeech(request);
+    } catch (e) {
+      console.warn(`⚠️ [FALLBACK] ${voiceName} failed. Retrying with Standard Native.`);
+      // SELF-HEALING: Retry with basic standard voice if premium fails
+      const fallbackRequest = {
+        input: { text: text },
+        voice: { languageCode: targetLangCode, ssmlGender: 'FEMALE' },
+        audioConfig: { audioEncoding: 'MP3' }
+      };
+      [response] = await ttsClient.synthesizeSpeech(fallbackRequest);
+    }
+
     const audioBase64 = response.audioContent.toString('base64');
     
     res.json({ 
       audioContent: audioBase64,
-      contentType: 'audio/mpeg'
+      contentType: 'audio/mpeg',
+      source: 'google-cloud'
     });
   } catch (error) {
-    console.error('Text-to-Speech Error:', error);
+    console.error('❌ [CRITICAL-TTS-ERROR]:', error);
     res.status(500).json({ 
       error: 'Failed to synthesize speech', 
       details: error.message,
-      code: error.code 
+      stack: error.stack, 
+      code: error.code
     });
   }
 });

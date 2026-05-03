@@ -27,20 +27,7 @@ export default function Chatbot() {
   const abortControllerRef = useRef(null);
 
 
-  const stopCurrentActions = () => {
-    // Stop any ongoing fetch
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-    // Stop any ongoing speech
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-    }
-    setIsLoading(false);
-  };
+
 
   useEffect(() => {
     if (SpeechRecognition) {
@@ -178,15 +165,29 @@ export default function Chatbot() {
     submitChat(currentInput);
   };
 
-  const speakText = async (text) => {
-    if (!voiceOutput) {
-      console.log('🔇 Voice output is disabled');
-      return;
+  const stopCurrentActions = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
+    // Stop system voice too
+    window.speechSynthesis.cancel();
+    setIsLoading(false);
+  };
+
+  const speakText = async (text) => {
+    if (!voiceOutput || !text) return;
     
-    // Strip markdown formatting for speech
-    const cleanText = text.replace(/[*_#\[\]`]/g, '');
-    console.log('🗣️ Attempting to speak:', cleanText.substring(0, 50) + '...');
+    stopCurrentActions(); // Ensure only one voice speaks at a time
+    
+    // FIX: Optimized regex to avoid useless escapes
+    const cleanText = text.replace(/[*_#[\]`]/g, '');
+    console.log('🗣️ Speaking:', cleanText.substring(0, 50));
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/speech/tts`, {
@@ -195,42 +196,47 @@ export default function Chatbot() {
         body: JSON.stringify({ text: cleanText, language: lang })
       });
 
-
       if (response.ok) {
         const data = await response.json();
-        const audioUrl = `data:${data.contentType};base64,${data.audioContent}`;
-        const audio = new Audio(audioUrl);
-        audioRef.current = audio;
         
-        audio.play()
-          .then(() => console.log('✅ Playback started'))
-          .catch(e => {
-            console.error('🚫 Audio play failed:', e);
-            if (e.name === 'NotAllowedError') {
-               alert("Playback blocked. Please click anywhere on the page to enable audio.");
-            }
-          });
-        
-        audio.onended = () => {
-          console.log('⏹️ Audio playback ended');
-          if (audioRef.current === audio) audioRef.current = null;
-        };
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("❌ Failed to fetch TTS:", response.status, errorData);
-        const detailMsg = errorData.details ? `\nDetails: ${errorData.details}` : '';
-        alert(`Audio Error: ${response.status}${detailMsg}`);
+        if (data.useBrowserFallback) {
+          throw new Error("Native Voice required");
+        }
+
+        // PRIORITIZE GENUINE GOOGLE VOICE
+        if (data.audioContent && !data.mock) {
+          console.log("💎 [GENUINE] Playback started using Google Cloud Native Voice.");
+          const audioUrl = `data:${data.contentType};base64,${data.audioContent}`;
+          const audio = new Audio(audioUrl);
+          audioRef.current = audio;
+          await audio.play();
+          return;
+        }
       }
     } catch (error) {
-      console.error("❌ TTS Network Error:", error);
+      console.warn("⚠️ Genuine Voice failed, using high-quality system fallback.");
     }
+
+    // FINAL FALLBACK: High-Quality Native Browser Voice
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    const voices = window.speechSynthesis.getVoices();
+    
+    // Find the best possible voice for the current language
+    const preferredVoice = voices.find(v => 
+      v.lang.startsWith(lang) || v.name.includes(lang)
+    ) || voices.find(v => v.name.includes('Google') || v.name.includes('Natural'));
+    
+    if (preferredVoice) utterance.voice = preferredVoice;
+    utterance.lang = lang === 'hi' ? 'hi-IN' : (lang === 'en' ? 'en-IN' : lang);
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
-    <div className="chatbot-container" id="chatbot-section">
+    <div className="chatbot-container" id="chatbot-section" role="complementary" aria-label="AI Assistant Chat">
       <div className="chatbot-header">
         <div className="header-title">
-          <div className="bot-icon"><FaRobot /></div>
+          <div className="bot-icon" aria-hidden="true"><FaRobot /></div>
           <div className="header-title-text">
             <h3>{t('nav.askAssistant')}</h3>
             <p>Online</p>
@@ -245,10 +251,16 @@ export default function Chatbot() {
               setVoiceOutput(newState);
               localStorage.setItem('chatbot_voice', newState);
             }}
+            aria-label={voiceOutput ? "Mute voice" : "Unmute voice"}
+            title={voiceOutput ? "Mute" : "Unmute"}
           >
             {voiceOutput ? <FaVolumeUp style={{ color: 'var(--primary)' }} /> : <FaVolumeMute />}
           </button>
-          <select value={mode} onChange={(e) => setMode(e.target.value)}>
+          <select 
+            value={mode} 
+            onChange={(e) => setMode(e.target.value)}
+            aria-label="Select AI expertise level"
+          >
             <option value="beginner">Beginner</option>
             <option value="intermediate">Intermediate</option>
             <option value="expert">Expert</option>
@@ -256,7 +268,7 @@ export default function Chatbot() {
         </div>
       </div>
 
-      <div className="chatbot-messages" aria-live="polite">
+      <div className="chatbot-messages" role="log" aria-live="polite">
         {messages.map((msg, index) => (
           <div key={index} className={`message-wrapper ${msg.sender}`}>
             <div className={`message-bubble ${msg.sender}`}>
@@ -266,19 +278,25 @@ export default function Chatbot() {
         ))}
         {isLoading && (
           <div className="message-wrapper bot">
-            <div className="message-bubble bot typing-indicator"><span>.</span><span>.</span><span>.</span></div>
+            <div className="message-bubble bot typing-indicator" aria-label="Bot is typing">
+              <span aria-hidden="true">.</span>
+              <span aria-hidden="true">.</span>
+              <span aria-hidden="true">.</span>
+            </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <img src="/robot.png" alt="3D Robot" className="floating-robot" />
+      <img src="/robot.png" alt="3D Assistant Robot Illustration" className="floating-robot" />
 
       <form className="chatbot-input-container" onSubmit={handleSend}>
         <button 
           type="button" 
           className={`icon-btn ${isRecording ? 'recording' : ''}`}
           onClick={isRecording ? stopRecording : startRecording}
+          aria-label={isRecording ? "Stop voice recording" : "Start voice input"}
+          title={isRecording ? "Stop" : "Speak"}
         >
           {isRecording ? <FaStop /> : <FaMicrophone />}
         </button>
@@ -288,8 +306,15 @@ export default function Chatbot() {
           onChange={(e) => setInput(e.target.value)}
           placeholder={isRecording ? "Recording... Click stop to send" : "Ask a question..."}
           disabled={isLoading || isRecording}
+          aria-label="Chat input field"
         />
-        <button type="submit" className="icon-btn primary" disabled={isLoading || !input.trim() || isRecording}>
+        <button 
+          type="submit" 
+          className="icon-btn primary" 
+          disabled={isLoading || !input.trim() || isRecording}
+          aria-label="Send message"
+          title="Send"
+        >
           <FaPaperPlane />
         </button>
       </form>
