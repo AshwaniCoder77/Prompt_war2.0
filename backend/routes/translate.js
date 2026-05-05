@@ -1,6 +1,18 @@
+/**
+ * @module routes/translate
+ * @description Translation route handler using Google Gemini AI.
+ * Supports translation of JSON key-value pairs with file-based caching
+ * to reduce API calls for previously translated languages.
+ */
 const express = require('express');
 const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+/** Supported language codes for translation */
+const SUPPORTED_LANGUAGES = [
+  'en', 'hi', 'bn', 'te', 'mr', 'ta', 'ur', 'gu', 'kn', 'ml', 'pa',
+  'as', 'brx', 'doi', 'ks', 'kok', 'mai', 'mni', 'ne', 'or', 'sa', 'sat', 'sd'
+];
 const fs = require('fs').promises;
 const path = require('path');
 

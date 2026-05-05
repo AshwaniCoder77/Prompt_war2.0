@@ -1,3 +1,9 @@
+/**
+ * @module backend/index
+ * @description Main entry point for the Election Assistant backend server.
+ * Configures Express with security middleware (Helmet, CORS, rate-limiting),
+ * API routes, Firebase services, and static file serving for the React SPA.
+ */
 require('dotenv').config();
 const express = require('express');
 const app = express();
@@ -64,6 +70,14 @@ if (isProduction) {
 app.use(cors());
 app.use(express.json());
 
+// Request Logging (non-production)
+if (!isProduction) {
+  app.use((req, _res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+    next();
+  });
+}
+
 // Health Check
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
@@ -98,6 +112,15 @@ app.use(express.static(path.join(__dirname, '../frontend/dist')));
 // THE ULTIMATE CATCHALL (Safe for all Express versions)
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
+
+// Centralized Error Handler
+app.use((err, _req, res, _next) => {
+  console.error('Unhandled Express Error:', err.message);
+  const statusCode = err.status || err.statusCode || 500;
+  res.status(statusCode).json({
+    error: isProduction ? 'Internal server error' : err.message
+  });
 });
 
 // Start server only if not in a test environment

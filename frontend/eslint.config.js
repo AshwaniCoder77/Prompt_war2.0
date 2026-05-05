@@ -2,6 +2,7 @@ import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
+import react from 'eslint-plugin-react'
 
 export default [
   { ignores: ['dist'] },
@@ -20,8 +21,14 @@ export default [
       },
     },
     plugins: {
+      'react': react,
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
+    },
+    settings: {
+      react: {
+        version: 'detect',
+      },
     },
     rules: {
       ...js.configs.recommended.rules,
@@ -31,6 +38,10 @@ export default [
         { allowConstantExport: true },
       ],
       'no-unused-vars': ['warn', { varsIgnorePattern: '^[A-Z]', argsIgnorePattern: '^_' }],
+      'eqeqeq': ['warn', 'always'],
+      'prefer-const': 'warn',
+      'react/jsx-no-target-blank': 'warn',
+      'react/self-closing-comp': 'warn',
     },
   },
 ]

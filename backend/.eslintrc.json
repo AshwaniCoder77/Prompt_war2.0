@@ -1,0 +1,24 @@
+{
+  "env": {
+    "node": true,
+    "commonjs": true,
+    "es2021": true,
+    "mocha": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": "latest"
+  },
+  "rules": {
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "no-console": "off",
+    "eqeqeq": ["error", "always"],
+    "no-var": "error",
+    "prefer-const": "warn",
+    "curly": ["warn", "multi-line"],
+    "no-throw-literal": "error",
+    "no-return-await": "warn",
+    "no-useless-catch": "warn"
+  },
+  "ignorePatterns": ["node_modules/", "data/"]
+}

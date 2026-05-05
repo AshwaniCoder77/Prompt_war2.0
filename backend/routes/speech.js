@@ -1,5 +1,14 @@
+/**
+ * @module routes/speech
+ * @description Speech route handler for transcription (STT) and text-to-speech (TTS).
+ * Uses Google Cloud Speech-to-Text and Text-to-Speech APIs with
+ * automatic credential detection and multi-language support.
+ */
 const express = require('express');
 const router = express.Router();
+
+/** Maximum audio file size (10 MB) */
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const speech = require('@google-cloud/speech');
 const textToSpeech = require('@google-cloud/text-to-speech');
 const multer = require('multer');
@@ -76,6 +85,7 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
   try {
     if (!client) return res.status(503).json({ error: 'Speech service not available' });
     if (!req.file) return res.status(400).json({ error: 'No audio file provided' });
+    if (req.file.size > MAX_FILE_SIZE) return res.status(400).json({ error: 'Audio file exceeds maximum size of 10MB' });
 
     const audioBytes = req.file.buffer.toString('base64');
     const audio = { content: audioBytes };
@@ -193,10 +203,11 @@ router.post('/tts', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ [CRITICAL-TTS-ERROR]:', error);
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.K_SERVICE !== undefined;
     res.status(500).json({ 
       error: 'Failed to synthesize speech', 
       details: error.message,
-      stack: error.stack, 
+      ...(isProduction ? {} : { stack: error.stack }),
       code: error.code
     });
   }

@@ -1,3 +1,9 @@
+/**
+ * @module routes/reminders
+ * @description Reminders route handler for managing election reminders.
+ * Supports CRUD operations on Firestore and FCM push notification
+ * registration and triggering.
+ */
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
@@ -42,6 +48,12 @@ router.post('/token', async (req, res) => {
 router.post('/', async (req, res) => {
   const { title, time, priority } = req.body;
   if (!db) return res.status(503).json({ error: 'Firestore not available' });
+  if (!title || typeof title !== 'string' || !title.trim()) {
+    return res.status(400).json({ error: 'Reminder title is required' });
+  }
+  if (!time) {
+    return res.status(400).json({ error: 'Reminder time is required' });
+  }
 
   try {
     const newReminder = { 
@@ -143,6 +155,9 @@ router.patch('/:id', async (req, res) => {
   const { id } = req.params;
   const { enabled } = req.body;
   if (!db) return res.status(503).json({ error: 'Firestore not available' });
+  if (typeof enabled !== 'boolean') {
+    return res.status(400).json({ error: 'enabled field (boolean) is required' });
+  }
 
   try {
     await db.collection('reminders').doc(id).update({ enabled });

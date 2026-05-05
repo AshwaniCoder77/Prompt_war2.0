@@ -1,6 +1,15 @@
+/**
+ * @module routes/chat
+ * @description Chat route handler for the Election Assistant AI.
+ * Uses Google Gemini AI to answer election-related queries with
+ * configurable complexity levels and multilingual support.
+ */
 const express = require('express');
 const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+/** Maximum allowed message length to prevent abuse */
+const MAX_MESSAGE_LENGTH = 5000;
 
 // Initialize Gemini API
 let genAI;
@@ -38,8 +47,12 @@ router.post('/', async (req, res) => {
   try {
     const { message, mode, language } = req.body; // mode: 'beginner', 'intermediate', 'expert'
 
-    if (!message) {
+    if (!message || typeof message !== 'string' || !message.trim()) {
       return res.status(400).json({ error: 'Message is required' });
+    }
+
+    if (message.length > MAX_MESSAGE_LENGTH) {
+      return res.status(400).json({ error: `Message exceeds maximum length of ${MAX_MESSAGE_LENGTH} characters` });
     }
 
     const model = genAI.getGenerativeModel({ model: "gemma-3-12b-it" });

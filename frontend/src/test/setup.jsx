@@ -23,6 +23,31 @@ global.Notification = {
   requestPermission: vi.fn(() => Promise.resolve('granted'))
 };
 
+// Mock scrollIntoView (not available in JSDOM)
+Element.prototype.scrollIntoView = vi.fn();
+
+// Mock speechSynthesis
+window.speechSynthesis = {
+  speak: vi.fn(),
+  cancel: vi.fn(),
+  getVoices: vi.fn(() => []),
+};
+
+// Mock SpeechSynthesisUtterance
+global.SpeechSynthesisUtterance = function(text) {
+  this.text = text;
+  this.voice = null;
+  this.lang = 'en-IN';
+  this.rate = 1.0;
+};
+
+// Mock Audio
+global.Audio = vi.fn().mockImplementation(() => ({
+  play: vi.fn(() => Promise.resolve()),
+  pause: vi.fn(),
+  currentTime: 0,
+}));
+
 // 2. Mock Global Fetch with a Universal Success Response
 global.fetch = vi.fn((url) => {
   const isReminders = typeof url === 'string' && url.includes('/reminders');
